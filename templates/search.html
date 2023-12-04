@@ -1,0 +1,30 @@
+{% extends "templates/base.html" %}
+
+{% block body %}
+  <h1 class="text-center mt-4 text-red-800">Welcome to JetSet Go</h1>
+  <h4 class="text-center mb-4">Please Enter Your Destination</h4>
+  <div class="container mt-4">
+    <div class="row">
+      <div class="offset-md-2 col-md-8">
+        <form method="post" action="{% url 'search' %}">
+          {% csrf_token %}
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" placeholder="Enter City" name="city_country" required>
+            <label>City</label>
+          </div>
+          <div class="form-floating">
+            <input type="date" class="form-control" placeholder="" name="check_in_date" required>
+            <label>Check-In Date</label>
+          </div>
+          <br>
+          <div class="form-floating">
+            <input type="date" class="form-control" placeholder="" name="check_out_date" required>
+            <label>Check-Out Date</label>
+          </div>
+          <br>
+          <button type="submit" class="btn btn-dark">Search Hotels</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock body %}
