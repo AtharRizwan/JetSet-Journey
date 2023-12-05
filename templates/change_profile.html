@@ -1,6 +1,6 @@
 {% extends "templates/base.html" %}
-{% block body %}
 
+{% block body %}
 {% if messages %}
     {% for message in messages %}
     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -9,19 +9,18 @@
     </div>
     {% endfor %}
 {% endif %}
-
-<h1 class = "text-center mt-4">Create a User</h1>
+<h1 class = "text-center mt-4">Hey {{username}}, Wanna Edit Your Profile?</h1>
 <br>
 <div class="container">
-    
 
     <form action="" method = 'POST'>
         {% csrf_token %}
         {{form.as_p}}
         <br>
         <br>
-        <input class = "btn btn-dark" type="submit" name = "submit" value = "Register">
+        <input class = "btn btn-dark" type="submit" name = "submit" value = "Save Changes">
     </form>
-    
+    <br>
+    <a class="nav-link" href="{% url 'change_password' %}"><input class = "btn btn-dark" type="submit" name = "submit" value = "Click Here to Change Your Password"></a>
 </div>
 {% endblock body %}

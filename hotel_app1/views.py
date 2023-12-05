@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth import update_session_auth_hash
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm, PasswordChangeForm
 from django.contrib import messages
-from .forms import loginForm
-from .models import Hotel, RoomAvailability
+from .forms import loginForm, CustomUserChangeForm 
+from .models import Hotel, RoomAvailability, User_info
 
 # Create your views here.
 def base(request):
@@ -15,7 +16,15 @@ def base(request):
     return render(request, 'base.html', context)
 
 def home(request):
-    return render(request, 'home.html')
+    username = None
+    if request.user.is_authenticated:
+        first_name = request.user.first_name
+    context = {'first_name': first_name,
+               
+    }
+    return render(request, 'home.html', context)
+
+    
 def search(request):
     if request.method == 'POST':
         city_country = request.POST.get('city_country')
@@ -82,6 +91,47 @@ def register(request):
     }
 
     return render(request, 'register.html', context)
+
+def change_profile(request):
+    if request.method == 'POST':
+        form = CustomUserChangeForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your profile has been updated")
+    else:
+        # Fetch the User_info instance related to the current user
+        user_info_instance = User_info.objects.get(user=request.user)
+        form = CustomUserChangeForm(instance=request.user, initial={
+            'city': user_info_instance.city,
+            'country': user_info_instance.country,
+            'phone_no': user_info_instance.phone_no,
+            'address': user_info_instance.address,
+            # Add other fields as needed
+        })
+
+    context = {
+        'form': form,
+        'username': request.user.first_name,
+    }
+
+    return render(request, 'change_profile.html', context)
+
+
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('change_password')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'change_password.html', {
+        'form': form
+    })
 
 def log_in(request):
     if request.method == "POST":
