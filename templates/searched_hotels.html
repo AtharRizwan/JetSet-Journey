@@ -1,6 +1,7 @@
 {% extends "templates/base.html" %} {% block body %}
 
 <div class="container mt-4">
+<h2 class = "text-center"><strong>Your location: </strong>{{user_region}}, {{user_country}}</h2>
 <h2 class = "text-center">Hotels in <strong>{{city_country}}: </strong></h2>
 <br />
 <h4>Number of Hotels: {{count}}</h4>

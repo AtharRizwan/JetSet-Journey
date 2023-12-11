@@ -10,6 +10,7 @@ from django.contrib.auth.models import User, Group
 from django.shortcuts import get_object_or_404
 import requests
 import json  
+from django.contrib.gis.geoip2 import GeoIP2
 
 # Create your views here.
 def base(request):
@@ -48,14 +49,33 @@ def search(request):
 
     return render(request, 'search.html')
 
-def searched_hotels(request):
-    # Retrieve search parameters from the session
-    search_params = request.session.get('search_params', {})
-    city_country = search_params.get('city_country','')
-    check_in_date = search_params.get('check_in_date', '')
-    check_out_date = search_params.get('check_out_date', '')
+# Function to get current IP Address
+def ip_addr(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
 
-    # Your OpenWeatherMap API key
+    if x_forwarded_for:
+
+       ip = x_forwarded_for.split(',')[0]
+
+    else:
+
+       ip = request.META.get('REMOTE_ADDR')
+       return ip
+
+# Function to get Location by IP address
+def get_ip_geolocation_data():
+    ip_address = ip_addr
+    api_key = '86c68403d31c4be0b0e11dc4e6fb4dd7'
+    api_url = 'https://ipgeolocation.abstractapi.com/v1/?api_key=' + api_key
+
+    print(ip_address)
+
+    response = requests.get(api_url)
+
+    return response.content
+
+def get_weather_data(city_country):
+     # API key
     api_key = '85a91f9d5f17440fab5120026231112'
 
     weather_url = f'http://api.weatherapi.com/v1/current.json?key={api_key}&q={city_country}&aqi=no'
@@ -65,27 +85,41 @@ def searched_hotels(request):
     if weather_response.status_code == 200:
         # Parse JSON response
         weather_data = weather_response.json()
-
-        # For example, you can print it:
-        print(weather_data)
+        return weather_data
     else:
         # If the request was not successful, print the error code
-        print(f"Error fetching weather data: {weather_response.status_code}")
+        return (f"Error fetching weather data: {weather_response.status_code}")
+
+
+def searched_hotels(request):
+    # Retrieve search parameters from the session
+    search_params = request.session.get('search_params', {})
+    city_country = search_params.get('city_country','')
+    check_in_date = search_params.get('check_in_date', '')
+    check_out_date = search_params.get('check_out_date', '')
 
     # Fetch hotels based on the search parameters
     get_query = f" SELECT h1.* FROM hotel_app1_hotel AS h1 JOIN hotel_app1_roomavailability AS h2 ON h1.name = h2.name_id WHERE h1.city = '{city_country}' AND h2.date >= '{check_in_date}' AND h2.date <= '{check_out_date}' GROUP BY h1.name"
     hotels = Hotel.objects.raw(get_query)
     count = len(list(hotels))
 
-    print(search_params)
-    print(hotels)
+    # Extracting countr and region
+    geolocation_json = get_ip_geolocation_data()
+    geolocation_data = json.loads(geolocation_json)
+    country = geolocation_data['country']
+    region = geolocation_data['region']
+
+    print(country)
+    print(region)
     context = {
          'city_country': city_country,
          'check_in_date': check_in_date,
          'check_out_date': check_out_date,
          'hotels' : hotels,
          'count' : count,
-         'weather_data': weather_data
+         'weather_data': get_weather_data(city_country),
+         'user_country' : country,
+         'user_region' : region,
      }
 
 
