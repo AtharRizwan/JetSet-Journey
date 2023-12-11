@@ -1,4 +1,5 @@
 {% extends "templates/base.html" %} {% block body %}
+
 <div class="container mt-4">
 <h2 class = "text-center">Hotels in <strong>{{city_country}}: </strong></h2>
 <br />
@@ -42,5 +43,20 @@
     {% endfor %}
   </div>
   {% endif %}
+</div>
+
+<div class="container" id = "info_container">
+  <div class="card" style="width: 18rem;">
+    <img src="{{weather_data.current.condition.icon}}" class="card-img-top" alt="...">
+    <div class="card-body">
+      <h5 class="card-title">Weather in {{city_country}}</h5>
+      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    </div>
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item"><strong>Temp in Celsius: </strong>{{weather_data.current.temp_c}}</li>
+      <li class="list-group-item"><strong>Condition: </strong>{{weather_data.current.condition.text}}</li>
+      <li class="list-group-item"><strong>Humidity: </strong>{{weather_data.current.humidity}}</li>
+    </ul>
+  </div>
 </div>
 {% endblock %}

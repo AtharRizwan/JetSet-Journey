@@ -8,6 +8,8 @@ from .forms import loginForm, CustomUserChangeForm
 from .models import Hotel, RoomAvailability, User_info
 from django.contrib.auth.models import User, Group
 from django.shortcuts import get_object_or_404
+import requests
+import json  
 
 # Create your views here.
 def base(request):
@@ -53,10 +55,28 @@ def searched_hotels(request):
     check_in_date = search_params.get('check_in_date', '')
     check_out_date = search_params.get('check_out_date', '')
 
+    # Your OpenWeatherMap API key
+    api_key = '85a91f9d5f17440fab5120026231112'
+
+    weather_url = f'http://api.weatherapi.com/v1/current.json?key={api_key}&q={city_country}&aqi=no'
+    weather_response = requests.get(weather_url)
+
+     # Check if the weather request was successful (status code 200)
+    if weather_response.status_code == 200:
+        # Parse JSON response
+        weather_data = weather_response.json()
+
+        # For example, you can print it:
+        print(weather_data)
+    else:
+        # If the request was not successful, print the error code
+        print(f"Error fetching weather data: {weather_response.status_code}")
+
     # Fetch hotels based on the search parameters
     get_query = f" SELECT h1.* FROM hotel_app1_hotel AS h1 JOIN hotel_app1_roomavailability AS h2 ON h1.name = h2.name_id WHERE h1.city = '{city_country}' AND h2.date >= '{check_in_date}' AND h2.date <= '{check_out_date}' GROUP BY h1.name"
     hotels = Hotel.objects.raw(get_query)
     count = len(list(hotels))
+
     print(search_params)
     print(hotels)
     context = {
@@ -64,7 +84,8 @@ def searched_hotels(request):
          'check_in_date': check_in_date,
          'check_out_date': check_out_date,
          'hotels' : hotels,
-         'count' : count
+         'count' : count,
+         'weather_data': weather_data
      }
 
 
