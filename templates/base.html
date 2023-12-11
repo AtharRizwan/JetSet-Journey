@@ -51,6 +51,11 @@
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'change_profile' %}">View Profile</a>
               </li>
+              {% if user.is_superuser %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'add_hotel' %}">Add Hotel</a>
+              </li>
+              {% endif %}
               {% endif %}
             </ul>
           </div>

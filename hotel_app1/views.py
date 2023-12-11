@@ -6,6 +6,8 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm, Password
 from django.contrib import messages
 from .forms import loginForm, CustomUserChangeForm 
 from .models import Hotel, RoomAvailability, User_info
+from django.contrib.auth.models import User, Group
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
 def base(request):
@@ -19,9 +21,10 @@ def home(request):
     username = None
     if request.user.is_authenticated:
         first_name = request.user.first_name
-    context = {'first_name': first_name,
+        context = {'first_name': first_name,
                
-    }
+        }
+    else: context = {}
     return render(request, 'home.html', context)
 
     
@@ -67,6 +70,10 @@ def searched_hotels(request):
 
     return render(request, 'searched_hotels.html', context)
 
+def add_hotel(request):
+    return render(request, 'add_hotel.html')
+
+
 
 def hotel_details(request, id):
     req_hotel = Hotel.objects.filter(hotelid = id)
@@ -81,7 +88,12 @@ def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            group = Group.objects.get(name='customers')
+
+            # Add the user to the group
+            group.user_set.add(user)
+
             messages.success(request, "A new user has been created")
     else:
         form = UserCreationForm()
@@ -93,19 +105,42 @@ def register(request):
     return render(request, 'register.html', context)
 
 def change_profile(request):
+    try:
+        user_info_instance = User_info.objects.get(user=request.user)
+    except User_info.DoesNotExist:
+        user_info_instance = None
+
     if request.method == 'POST':
         form = CustomUserChangeForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
+
+            # Update or create User_info instance
+            if user_info_instance:
+                # If User_info instance exists, update it
+                user_info_instance.city = form.cleaned_data['city']
+                user_info_instance.country = form.cleaned_data['country']
+                user_info_instance.phone_no = form.cleaned_data['phone_no']
+                user_info_instance.address = form.cleaned_data['address']
+                user_info_instance.save()
+            else:
+                # If User_info instance does not exist, create a new one
+                User_info.objects.create(
+                    user=request.user,
+                    city=form.cleaned_data['city'],
+                    country=form.cleaned_data['country'],
+                    phone_no=form.cleaned_data['phone_no'],
+                    address=form.cleaned_data['address'],
+                    # Add other fields as needed
+                )
+
             messages.success(request, "Your profile has been updated")
     else:
-        # Fetch the User_info instance related to the current user
-        user_info_instance = User_info.objects.get(user=request.user)
         form = CustomUserChangeForm(instance=request.user, initial={
-            'city': user_info_instance.city,
-            'country': user_info_instance.country,
-            'phone_no': user_info_instance.phone_no,
-            'address': user_info_instance.address,
+            'city': user_info_instance.city if user_info_instance else '',
+            'country': user_info_instance.country if user_info_instance else '',
+            'phone_no': user_info_instance.phone_no if user_info_instance else '',
+            'address': user_info_instance.address if user_info_instance else '',
             # Add other fields as needed
         })
 
@@ -115,7 +150,6 @@ def change_profile(request):
     }
 
     return render(request, 'change_profile.html', context)
-
 
 def change_password(request):
     if request.method == 'POST':

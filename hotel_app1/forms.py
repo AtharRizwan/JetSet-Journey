@@ -29,3 +29,9 @@ class CustomUserChangeForm(UserChangeForm):
             profile.save()
 
         return user
+
+class add_hotel(forms.Form):
+    name = forms.CharField(max_length=70)
+    country = forms.CharField(max_length=70)
+    city = forms.CharField(max_length=70)
+
