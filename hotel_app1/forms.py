@@ -40,7 +40,7 @@ class HotelBookingForm(forms.ModelForm):
     class Meta:
         model = HotelBooking
         fields = '__all__'
-        exclude = ['user', 'hotel']
+        exclude = ['user', 'hotel', 'no_of_days','price_to_be_paid']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),

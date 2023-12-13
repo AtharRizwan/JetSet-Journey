@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404
 import requests
 import json  
 from django.contrib.gis.geoip2 import GeoIP2
+from datetime import datetime
 
 # Create your views here.
 def base(request):
@@ -156,14 +157,33 @@ def hotel_details(request, id):
 
 def booking(request, id):
     req_hotel = Hotel.objects.filter(hotelid=id).first()
+    # For testing purposes
+    print(req_hotel.price_per_night)
+    # Getting data from the session
+    search_params = request.session.get('search_params', {})
+    check_in_date = search_params.get('check_in_date', '')
+    check_out_date = search_params.get('check_out_date', '')
+    # Convert the strings to datetime objects
+    check_in_date = datetime.strptime(check_in_date, "%Y-%m-%d")
+    check_out_date = datetime.strptime(check_out_date, "%Y-%m-%d")
+    no_of_days = (check_out_date - check_in_date).days
 
     if request.method == 'POST':
         form = HotelBookingForm(request.POST)
         if form.is_valid():
             # Create a HotelBooking instance and populate its fields with form data
             booking_instance = form.save(commit=False)
-            booking_instance.user = request.user  # Set the user
-            booking_instance.hotel = req_hotel  # Set the hotel
+            # Set the remaining attributes
+            booking_instance.user = request.user 
+            booking_instance.hotel = req_hotel 
+            booking_instance.no_of_days = no_of_days
+            if(booking_instance.room_preference == "Standard"):
+                booking_instance.price_to_be_paid = req_hotel.price_per_night * no_of_days
+            elif(booking_instance.room_preference == "Deluxe"):
+                booking_instance.price_to_be_paid = (req_hotel.price_per_night * 1.25) * no_of_days
+            else:
+                booking_instance.price_to_be_paid = (req_hotel.price_per_night * 1.50) * no_of_days
+            print(booking_instance.room_preference) 
             booking_instance.save()
 
             messages.success(request, "Hotel has been booked")
@@ -296,6 +316,7 @@ def all_users(request):
     return render(request, 'all_users.html', context)
 
 def all_bookings(request):
+    # HotelBooking.objects.all().delete()
     all_bookings_info = HotelBooking.objects.select_related('hotel').all()
     context = {
         'all_bookings_info': all_bookings_info

@@ -17,7 +17,7 @@ class Hotel(models.Model):
     name = models.CharField(max_length = 250, unique= True)    
     country = models.CharField(max_length = 250)    
     city = models.CharField(max_length = 250)    
-
+    price_per_night = models.IntegerField(default=100)
     def __str__(self):
         return self.name 
 
@@ -32,6 +32,8 @@ class RoomAvailability(models.Model):
 class HotelBooking(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE)
+    no_of_days = models.IntegerField(default = 0)
+    price_to_be_paid = models.IntegerField(default = 0)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
