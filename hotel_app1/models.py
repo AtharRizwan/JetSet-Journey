@@ -9,7 +9,7 @@ class User_info(models.Model):
     country = models.CharField(max_length=50)
     address = models.CharField(max_length=50)
     def __str__(self):
-        return self.first_name
+        return self.user.first_name 
     
 
 class Hotel(models.Model):
@@ -28,4 +28,27 @@ class RoomAvailability(models.Model):
 
     def __str__(self):
         return self.date
-    
+
+class HotelBooking(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    address = models.CharField(max_length=100)
+    city = models.CharField(max_length=50)
+    state = models.CharField(max_length=50)
+    zip_code = models.IntegerField()
+    phone = models.CharField(max_length=15)
+    email = models.EmailField()
+    room_choices = [
+        ('Standard', 'Standard'),
+        ('Deluxe', 'Deluxe'),
+        ('Suite', 'Suite'),
+    ]
+    room_preference = models.CharField(max_length=20, 
+                                       choices=room_choices, null = True, blank = True)
+    special_requests = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.room_preference} Room"
+

@@ -4,8 +4,8 @@ from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm, PasswordChangeForm
 from django.contrib import messages
-from .forms import loginForm, CustomUserChangeForm 
-from .models import Hotel, RoomAvailability, User_info
+from .forms import loginForm, CustomUserChangeForm, HotelBookingForm
+from .models import Hotel, RoomAvailability, User_info, HotelBooking
 from django.contrib.auth.models import User, Group
 from django.shortcuts import get_object_or_404
 import requests
@@ -20,6 +20,21 @@ def base(request):
     }
     return render(request, 'base.html', context)
 
+# Function to get country activities
+def get_country_activities(country):
+    url = "https://travel-info-api.p.rapidapi.com/country-activities"
+
+    querystring = {"country":country}
+
+    headers = {
+	    "X-RapidAPI-Key": "6ffd060abfmsh6e4245644fb2d43p10650djsn6a88c2b5417a",
+	    "X-RapidAPI-Host": "travel-info-api.p.rapidapi.com"
+    }
+
+    response = requests.get(url, headers=headers, params=querystring)
+
+    return(response.json())
+
 def home(request):
     username = None
     if request.user.is_authenticated:
@@ -28,6 +43,7 @@ def home(request):
                
         }
     else: context = {}
+    print(get_country_activities("Pakistan"))
     return render(request, 'home.html', context)
 
     
@@ -138,6 +154,36 @@ def hotel_details(request, id):
     }
     return render(request, 'hotel_details.html', context)
 
+def booking(request, id):
+    req_hotel = Hotel.objects.filter(hotelid=id).first()
+
+    if request.method == 'POST':
+        form = HotelBookingForm(request.POST)
+        if form.is_valid():
+            # Create a HotelBooking instance and populate its fields with form data
+            booking_instance = form.save(commit=False)
+            booking_instance.user = request.user  # Set the user
+            booking_instance.hotel = req_hotel  # Set the hotel
+            booking_instance.save()
+
+            messages.success(request, "Hotel has been booked")
+            return redirect('payment')
+        else:
+            print(form.errors)
+    else:
+        form = HotelBookingForm()
+
+    context = {
+        'form': form,
+        'req_hotel': req_hotel
+    }
+
+    return render(request, 'booking.html', context)
+
+
+def payment(request):
+    return render(request, 'payment.html')
+
 
 def register(request):
     if request.method == 'POST':
@@ -239,3 +285,19 @@ def log_in(request):
 def log_out(request):
     logout(request)
     return redirect('log_in')
+
+def all_users(request):
+    # This is equivalent to JOIN operator in SQL
+    all_users_info = User_info.objects.select_related('user')
+    print(all_users_info)
+    context = {
+        'all_users_info': all_users_info
+    }
+    return render(request, 'all_users.html', context)
+
+def all_bookings(request):
+    all_bookings_info = HotelBooking.objects.select_related('hotel').all()
+    context = {
+        'all_bookings_info': all_bookings_info
+    }
+    return render(request, 'all_bookings.html', context)

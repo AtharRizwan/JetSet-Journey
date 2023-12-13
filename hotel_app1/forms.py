@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserChangeForm
-from .models import User_info
+from .models import User_info, HotelBooking
 class loginForm(forms.Form):
     username = forms.CharField(max_length=70)
     password = forms.CharField(max_length=70, widget = forms.PasswordInput)
@@ -35,3 +35,20 @@ class add_hotel(forms.Form):
     country = forms.CharField(max_length=70)
     city = forms.CharField(max_length=70)
 
+class HotelBookingForm(forms.ModelForm):
+
+    class Meta:
+        model = HotelBooking
+        fields = '__all__'
+        exclude = ['user', 'hotel']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.TextInput(attrs={'class': 'form-control'}),
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'state': forms.TextInput(attrs={'class': 'form-control'}),
+            'zip_code': forms.NumberInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'room_preference': forms.Select(attrs={'class': 'form-control'})
+        }

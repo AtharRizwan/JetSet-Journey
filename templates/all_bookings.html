@@ -1,0 +1,13 @@
+{% extends "templates/base.html" %}
+{% block body %}
+<h1>This is admin block for bookings</h1>
+{% for booking in all_bookings_info %}
+    <p>{{booking.city}}</p>
+    <p>{{booking.state}}</p>
+    <p>{{booking.first_name}}</p>
+    <p>{{booking.last_name}}</p>
+    <p>{{booking.address}}</p>
+    <p>{{booking.room_preference}}</p>
+    <p>{{booking.hotel}}</p>
+{% endfor %}
+{% endblock body %}

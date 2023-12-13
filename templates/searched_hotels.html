@@ -34,7 +34,7 @@
         </ul>
         <div class="card-body">
           {% if user.is_authenticated %}
-          <a href="#" class="card-link"><button type="button" class="btn btn-primary">Book Now</button></a>
+          <a href="{% url 'booking' id=hotel.hotelid%}" class="card-link"><button type="button" class="btn btn-primary">Book Now</button></a>
           {% endif %}
           <a href="{% url 'hotel_details' id=hotel.hotelid %}" class="card-link"><button type="button" class="btn btn-primary">Preview</button></a>
         </div>

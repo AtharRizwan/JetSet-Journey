@@ -1,0 +1,11 @@
+{% extends "templates/base.html" %}
+{% block body %}
+<h1>This is admin block for users</h1>
+{% for user in all_users_info %}
+    <p>{{user.city}}</p>
+    <p>{{user.country}}</p>
+    <p>{{user.first_name}}</p>
+    <p>{{user.last_name}}</p>
+    <p>{{user.address}}</p>
+{% endfor %}
+{% endblock body %}
