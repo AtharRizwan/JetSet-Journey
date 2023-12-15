@@ -29,11 +29,17 @@ class RoomAvailability(models.Model):
     def __str__(self):
         return self.date
 
+class CreditCard(models.Model):
+    card_no = models.CharField(max_length=50, primary_key=True)
+    bank_name = models.CharField(max_length=50,default = "")
+    cvc = models.IntegerField()
+    expiry_date = models.DateField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 class HotelBooking(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE)
     no_of_days = models.IntegerField(default = 0)
-    price_to_be_paid = models.IntegerField(default = 0)
+    payment_price = models.IntegerField(default = 0)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
@@ -53,4 +59,6 @@ class HotelBooking(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.room_preference} Room"
+
+
 

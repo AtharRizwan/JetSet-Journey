@@ -4,8 +4,8 @@ from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm, PasswordChangeForm
 from django.contrib import messages
-from .forms import loginForm, CustomUserChangeForm, HotelBookingForm
-from .models import Hotel, RoomAvailability, User_info, HotelBooking
+from .forms import loginForm, CustomUserChangeForm, HotelBookingForm, PaymentForm
+from .models import Hotel, RoomAvailability, User_info, HotelBooking, CreditCard
 from django.contrib.auth.models import User, Group
 from django.shortcuts import get_object_or_404
 import requests
@@ -157,8 +157,6 @@ def hotel_details(request, id):
 
 def booking(request, id):
     req_hotel = Hotel.objects.filter(hotelid=id).first()
-    # For testing purposes
-    print(req_hotel.price_per_night)
     # Getting data from the session
     search_params = request.session.get('search_params', {})
     check_in_date = search_params.get('check_in_date', '')
@@ -171,22 +169,34 @@ def booking(request, id):
     if request.method == 'POST':
         form = HotelBookingForm(request.POST)
         if form.is_valid():
-            # Create a HotelBooking instance and populate its fields with form data
-            booking_instance = form.save(commit=False)
-            # Set the remaining attributes
-            booking_instance.user = request.user 
-            booking_instance.hotel = req_hotel 
-            booking_instance.no_of_days = no_of_days
-            if(booking_instance.room_preference == "Standard"):
-                booking_instance.price_to_be_paid = req_hotel.price_per_night * no_of_days
-            elif(booking_instance.room_preference == "Deluxe"):
-                booking_instance.price_to_be_paid = (req_hotel.price_per_night * 1.25) * no_of_days
+            # Store relevant data in session
+            
+            room_preference = form.cleaned_data['room_preference']
+            print(room_preference)
+            if(room_preference == "Standard"):
+                   payment_price = req_hotel.price_per_night * no_of_days
+            elif(room_preference == "Deluxe"):
+                    payment_price = (req_hotel.price_per_night * 1.25) * no_of_days
             else:
-                booking_instance.price_to_be_paid = (req_hotel.price_per_night * 1.50) * no_of_days
-            print(booking_instance.room_preference) 
-            booking_instance.save()
-
-            messages.success(request, "Hotel has been booked")
+                    payment_price = (req_hotel.price_per_night * 1.50) * no_of_days
+            request.session['booking_data'] = {
+                'user': request.user.id,
+                'hotel': req_hotel.hotelid,
+                'no_of_days': no_of_days,
+                'room_preference': room_preference,
+                'payment_price': payment_price,
+                'first_name': form.cleaned_data['first_name'],
+                'last_name': form.cleaned_data['last_name'],
+                'address': form.cleaned_data['address'],
+                'city': form.cleaned_data['city'],
+                'state': form.cleaned_data['state'],
+                'zip_code': form.cleaned_data['zip_code'],
+                'phone': form.cleaned_data['phone'],
+                'email': form.cleaned_data['email'],
+                'special_requests': form.cleaned_data['special_requests'],
+            }
+            
+            messages.success(request, "Form Validated Successfully")
             return redirect('payment')
         else:
             print(form.errors)
@@ -202,7 +212,54 @@ def booking(request, id):
 
 
 def payment(request):
-    return render(request, 'payment.html')
+    # Retrieve data from session
+    booking_data = request.session.get('booking_data', {})
+
+    if request.method == 'POST':
+        form = PaymentForm(request.POST)
+        if form.is_valid():
+            # Save the PaymentForm instance
+            payment_instance = form.save(commit=False)
+            
+            # Ensure that user_id is set for the CreditCard instance
+            payment_instance.user_id = booking_data.get('user', '')
+            payment_instance.save()
+
+            # Create and save HotelBooking instance
+            hotel_booking_instance = HotelBooking.objects.create(
+                user_id=booking_data.get('user', ''),
+                hotel_id=booking_data.get('hotel', ''),
+                no_of_days=booking_data.get('no_of_days', ''),
+                payment_price=booking_data.get('payment_price', ''),
+                first_name=booking_data.get('first_name', ''),
+                last_name=booking_data.get('last_name', ''),
+                address=booking_data.get('address', ''),
+                city=booking_data.get('city', ''),
+                state=booking_data.get('state', ''),
+                zip_code=booking_data.get('zip_code', ''),
+                phone=booking_data.get('phone', ''),
+                email=booking_data.get('email', ''),
+                room_preference=booking_data.get('room_preference', ''),
+                special_requests=booking_data.get('special_requests', ''),
+            )
+
+            # Clear session data after successful processing
+            del request.session['booking_data']
+
+            # Continue with the rest of your payment processing logic
+            messages.success(request, "Payment successful!")
+            return redirect('payment')
+        else:
+            messages.error(request, "Payment form is invalid. Please check the entered information.")
+    else:
+        form = PaymentForm()
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'payment.html', context)
+
+
 
 
 def register(request):
@@ -299,6 +356,7 @@ def log_in(request):
             return redirect('home')
         
         else:
+            messages.error(request, 'Invalid Username or Password.')
             return redirect('log_in')
     else:
         return render(request, 'log_in.html')

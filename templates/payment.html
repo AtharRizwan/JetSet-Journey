@@ -1,6 +1,22 @@
 {% extends "templates/base.html" %}
 {% block body %}
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>{{message}}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+{% endif %}
 <div class="container">
-    <h1>this is payment page</h1>
+    <h1 class = "text-center my-4">Enter Your Credit Card Details</h1>
+        <form action="" method = 'POST'>
+            {% csrf_token %}
+            
+            {{form.as_p}}
+            <button type="submit" class="btn btn-primary">Confirm Booking</button>
+              
+        </form>
+
 </div>
 {% endblock body %}

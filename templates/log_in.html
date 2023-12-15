@@ -1,7 +1,14 @@
 
 {% extends "templates/base.html" %}
 {% block body%}
-
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>{{message}}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+{% endif %}
 <div class="container my-4">
     <h1>Log In to your account</h1>
     <br>

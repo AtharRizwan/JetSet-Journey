@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserChangeForm
-from .models import User_info, HotelBooking
+from .models import User_info, HotelBooking,CreditCard
 class loginForm(forms.Form):
     username = forms.CharField(max_length=70)
     password = forms.CharField(max_length=70, widget = forms.PasswordInput)
@@ -40,7 +40,7 @@ class HotelBookingForm(forms.ModelForm):
     class Meta:
         model = HotelBooking
         fields = '__all__'
-        exclude = ['user', 'hotel', 'no_of_days','price_to_be_paid']
+        exclude = ['user', 'hotel', 'no_of_days','payment_price']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -51,4 +51,17 @@ class HotelBookingForm(forms.ModelForm):
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'room_preference': forms.Select(attrs={'class': 'form-control'})
+        }
+
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = CreditCard
+        fields = '__all__'
+        exclude = ['user']
+        widgets = {
+            'card_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'bank_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'cvc': forms.NumberInput(attrs={'class': 'form-control'}),
+            'expiry_date': forms.DateInput(attrs={'class': 'form-control'}),
+            
         }
