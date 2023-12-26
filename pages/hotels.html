@@ -41,31 +41,146 @@
             </h1>
         </div>
         <div class="flex items-center justify-center flex-col">
-            <h4 class=" text-white text-center mb-4 font-black text-3xl">Choose Your Destination City</h4>
-            <form action="" class="bg-white px-10 py-6 rounded-md shadow-2xl form-grid w-2/4">
-                <div class="form-input-container">
-                    <label for="destination" class="form-input-label">Destination City</label>
-                    <input type="text" id="destination" class="form-input px-2 py-1 bg-slate-200 shadow-md"
-                        placeholder="Enter Destination City" autocomplete="off" required>
+            <h4 class=" text-white text-center mb-4 font-black text-3xl">Choose Your Travel Destination</h4>
+            <div class="bg-white px-10 py-6 rounded-md shadow-2xl w-3/4 flex flex-row">
+                <div class="w-1/3 bg-slate-500 mr-10 rounded-lg flex flex-col items-center text-white">
+                    <div class="steps h-1/4">
+                        <h2 class="rounded-full px-2 border-white border-2">1</h2>
+                        <p class="steps-p ml-4 pr-3">Destination Information</p>
+                    </div>
+                    <div class="steps h-1/4">
+                        <h2 class="rounded-full px-2 border-white border-2">2</h2>
+                        <p class="steps-p ml-4">Flights Information</p>
+                    </div>
+                    <div class="steps  h-1/4">
+                        <h2 class="rounded-full px-2 border-white border-2">3</h2>
+                        <p class="steps-p ml-4">Seat Selection</p>
+                    </div>
+                    <div class="steps  h-1/4">
+                        <h2 class="rounded-full px-2 border-white border-2">4</h2>
+                        <p class="steps-p ml-4">Summary</p>
+                    </div>
                 </div>
-                <div class="form-input-container">
-                    <label for="number-of-adults" class="form-input-label">Number of Adults</label>
-                    <input type="text" id="number-of-adults" class="form-input px-2 py-1 bg-slate-200 shadow-md"
-                        placeholder="eg: 2 Adults" autocomplete="off" required>
+                <div class="overflow-x-auto flex w-3/4">
+                    <form action="" class="form-grid w-full">
+                        <div class="col-span-2 -mt-6 font-bold text-2xl font-serif">
+                            Hotel Information
+                        </div>
+                        <div class="form-input-container">
+                            <label for="destination" class="form-input-label">Destination City</label>
+                            <input type="text" id="destination" class="form-input px-2 py-1 bg-slate-200 shadow-md"
+                                placeholder="Enter Destination City" autocomplete="off" required>
+                        </div>
+                        <div class="form-input-container">
+                            <label for="number-of-adults" class="form-input-label">Number of Adults</label>
+                            <input type="text" id="number-of-adults" class="form-input px-2 py-1 bg-slate-200 shadow-md"
+                                placeholder="eg: 2 Adults" autocomplete="off" required>
+                        </div>
+                        <div class="form-input-container">
+                            <label for="check-in-date" class="form-input-label">Check-In Date</label>
+                            <input type="date" id="check-in-date" class="form-input px-2 py-1 bg-slate-200 shadow-md"
+                                placeholder="" autocomplete="off" required>
+                        </div>
+                        <div class="form-input-container">
+                            <label for="check-out-date" class="form-input-label">Check-Out Date</label>
+                            <input type="date" id="check-out-date" class="form-input px-2 py-1 bg-slate-200 shadow-md"
+                                placeholder="" autocomplete="off" required>
+                        </div>
+                        <button type="submit"
+                            class="form-input-submit col-span-2 mt-3 bg-slate-500 py-1 shadow-2xl text-white hover:text-black font-medium">Search</button>
+                    </form>
                 </div>
-                <div class="form-input-container">
-                    <label for="check-in-date" class="form-input-label">Check-In Date</label>
-                    <input type="date" id="check-in-date" class="form-input px-2 py-1 bg-slate-200 shadow-md"
-                        placeholder="" autocomplete="off" required>
-                </div>
-                <div class="form-input-container">
-                    <label for="check-out-date" class="form-input-label">Check-Out Date</label>
-                    <input type="date" id="check-out-date" class="form-input px-2 py-1 bg-slate-200 shadow-md"
-                        placeholder="" autocomplete="off" required>
-                </div>
-                <button type="submit"
-                    class="form-input-submit col-span-2 mt-3 bg-slate-500 py-1 shadow-2xl text-white hover:text-black font-medium">Search</button>
-            </form>
+                <!-- <div class="overflow-x-auto flex w-3/4 py-4">
+                    <div class="bg-white border border-gray-200 rounded-lg shadow mx-1 min-w-self">
+                        <img class="rounded-t-lg h-48 w-full" src="./images/pia.jpg" alt="" />
+                        <div class="p-5">
+                            <div>
+                                <h5 class="text-2xl min-h-self font-bold tracking-tight text-gray-900">
+                                    Pakistan International Airlines
+                                </h5>
+                            </div>
+                            <div class="font-normal text-gray-700">
+                                <h5><span class="font-bold">Departure City: </span>Lahore</h5>
+                                <h5><span class="font-bold">Destination City: </span>Islamabad</h5>
+                                <h5><span class="font-bold">Departure Time: </span>13:00</h5>
+                                <h5><span class="font-bold">Arrvial Time: </span>15:00</h5>
+                                <h5><span class="font-bold">Travel Duration: </span>2 hours</h5>
+                            </div>
+                            <div class="flex justify-between">
+                                <button class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center
+                                    text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                    Select
+                                </button>
+                                <button
+                                    class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                    $200
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg shadow mx-1 min-w-self">
+                        <img class="rounded-t-lg h-48" src="./images/airsial.jpeg" alt="" />
+                        <div class="p-5 flex flex-col">
+                            <div>
+                                <h5 class="text-2xl min-h-self font-bold tracking-tight text-gray-900">
+                                    AirSial
+                                </h5>
+                            </div>
+                            <div class="font-normal text-gray-700">
+                                <h5><span class="font-bold">Departure City: </span>Lahore</h5>
+                                <h5><span class="font-bold">Destination City: </span>Islamabad</h5>
+                                <h5><span class="font-bold">Departure Time: </span>13:00</h5>
+                                <h5><span class="font-bold">Arrvial Time: </span>15:00</h5>
+                                <h5><span class="font-bold">Travel Duration: </span>2 hours</h5>
+                            </div>
+                            <div class="flex justify-between">
+                                <button class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center
+                                    text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                    Select
+                                </button>
+                                <button
+                                    class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                    $200
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg shadow mx-1 min-w-self">
+                        <img class="rounded-t-lg h-48" src="./images/airblue.jpeg" alt="Plane Pic" />
+                        <div class="p-5">
+                            <div>
+                                <h5 class="text-2xl min-h-self font-bold tracking-tight text-gray-900">
+                                    AirBlue
+                                </h5>
+                            </div>
+                            <div class="font-normal text-gray-700">
+                                <h5><span class="font-bold">Departure City: </span>Lahore</h5>
+                                <h5><span class="font-bold">Destination City: </span>Islamabad</h5>
+                                <h5><span class="font-bold">Departure Time: </span>13:00</h5>
+                                <h5><span class="font-bold">Arrvial Time: </span>15:00</h5>
+                                <h5><span class="font-bold">Travel Duration: </span>2 hours</h5>
+                            </div>
+                            <div class="flex justify-between">
+                                <button class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center
+                                    text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                    Select
+                                </button>
+                                <button
+                                    class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                    $200
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+                <!-- <div class="overflow-x-auto flex w-3/4 py-4">
+         
+                </div> -->
+                <!-- <div class="overflow-x-auto flex w-3/4 py-4">
+
+                </div> -->
+
+            </div>
         </div>
         <div>
             <div class="flex text-4xl mt-16 justify-center items-center font-extrabold text-gray-100 mb-5">
