@@ -97,12 +97,15 @@
     }
 
     .seat{
-        background-color: rgb(203 213 225 1);
+        background-color: rgb(203, 213, 225);
         border-radius: 9999px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .seat:hover{
-        background-color: rgb(129 140 248 1);
+        background-color: lightblue;
     }
     
 }
