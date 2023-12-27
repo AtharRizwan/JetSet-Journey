@@ -6,6 +6,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm, Password
 from django.contrib import messages
 from .forms import loginForm, CustomUserChangeForm, HotelBookingForm, PaymentForm
 from .models import Hotel, RoomAvailability, User_info, HotelBooking, CreditCard
+from .models import Airline, Flight, FlightBooking, FlightBookedSeats
 from django.contrib.auth.models import User, Group
 from django.shortcuts import get_object_or_404
 import requests
@@ -65,6 +66,57 @@ def search(request):
         return redirect('searched_hotels')
 
     return render(request, 'search.html')
+
+def search_flights(request):
+    if request.method == 'POST':
+        departure_city = request.POST.get('departure_city')
+        destination_city = request.POST.get('destination_city')
+        departure_date = request.POST.get('departure_date', '')
+        airline_service = request.POST.get('airline_service')
+        # Store the search parameters in the session
+        request.session['flight_search_params'] = {
+            'departure_city': departure_city,
+            'destination_city': destination_city,
+            'departure_date': departure_date,
+            'airline_service': airline_service,
+        }
+
+        # Redirect to the flights_informations view
+        return redirect('flights_informations')
+    
+    return render(request, 'search_flights.html')
+    
+def flights_informations(request):
+    # Retrieve search parameters from the session
+    flight_search_params = request.session.get('flight_search_params', {})
+    departure_city = flight_search_params.get('departure_city','')
+    destination_city = flight_search_params.get('destination_city', '')
+    departure_date = flight_search_params.get('departure_date', '')
+    airline_service = flight_search_params.get('airline_service', '')
+
+    # Fetch flights based on the search parameters
+    get_query = f" SELECT * FROM hotel_app1_flight JOIN hotel_app1_airline USING (airline_id) WHERE departure_city = '{departure_city}' AND destination_city = '{destination_city}' AND departure_date = '{departure_date}' AND airline_name = '{airline_service}'"
+    flights = Hotel.objects.raw(get_query)
+    count = len(list(flights))
+
+    context = {
+         'departure_city': departure_city,
+         'destination_city': destination_city,
+         'departure_date': departure_date,
+         'airline_service': airline_service,
+         'flights' : flights,
+         'count' : count,
+     }
+
+    return render(request, 'flights_informations.html', context)
+
+def flight_details(request, id):
+    req_flight = Hotel.objects.filter(hotelid = id)
+    print(req_flight)
+    context = {
+        'req_flight': req_flight
+    }
+    return render(request, 'flight_details.html', context)
 
 # Function to get current IP Address
 def ip_addr(request):
@@ -380,3 +432,54 @@ def all_bookings(request):
         'all_bookings_info': all_bookings_info
     }
     return render(request, 'all_bookings.html', context)
+
+def search_buses(request):
+    if request.method == 'POST':
+        departure_city = request.POST.get('departure_city')
+        destination_city = request.POST.get('destination_city')
+        departure_date = request.POST.get('departure_date', '')
+        bus_service = request.POST.get('airline_service')
+        # Store the search parameters in the session
+        request.session['flight_search_params'] = {
+            'departure_city': departure_city,
+            'destination_city': destination_city,
+            'departure_date': departure_date,
+            'bus_service': bus_service,
+        }
+
+        # Redirect to the flights_informations view
+        return redirect('flights_informations')
+    
+    return render(request, 'search_flights.html')
+    
+def flights_informations(request):
+    # Retrieve search parameters from the session
+    flight_search_params = request.session.get('flight_search_params', {})
+    departure_city = flight_search_params.get('departure_city','')
+    destination_city = flight_search_params.get('destination_city', '')
+    departure_date = flight_search_params.get('departure_date', '')
+    airline_service = flight_search_params.get('airline_service', '')
+
+    # Fetch flights based on the search parameters
+    get_query = f" SELECT * FROM hotel_app1_flight JOIN hotel_app1_airline USING (airline_id) WHERE departure_city = '{departure_city}' AND destination_city = '{destination_city}' AND departure_date = '{departure_date}' AND airline_name = '{airline_service}'"
+    flights = Hotel.objects.raw(get_query)
+    count = len(list(flights))
+
+    context = {
+         'departure_city': departure_city,
+         'destination_city': destination_city,
+         'departure_date': departure_date,
+         'airline_service': airline_service,
+         'flights' : flights,
+         'count' : count,
+     }
+
+    return render(request, 'flights_informations.html', context)
+
+def flight_details(request, id):
+    req_flight = Hotel.objects.filter(hotelid = id)
+    print(req_flight)
+    context = {
+        'req_flight': req_flight
+    }
+    return render(request, 'flight_details.html', context)

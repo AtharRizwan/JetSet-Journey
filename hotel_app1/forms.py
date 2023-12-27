@@ -65,3 +65,5 @@ class PaymentForm(forms.ModelForm):
             'expiry_date': forms.DateInput(attrs={'class': 'form-control'}),
             
         }
+
+
