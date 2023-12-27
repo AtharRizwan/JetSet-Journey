@@ -6,11 +6,12 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm, Password
 from django.contrib import messages
 from .forms import loginForm, CustomUserChangeForm, HotelBookingForm, PaymentForm
 from .models import Hotel, RoomAvailability, User_info, HotelBooking, CreditCard
-from .models import Airline, Flight, FlightBooking, FlightBookedSeats
+from .models import Airline, Flight, FlightBooking, FlightBookedSeats, Suites, HotelServices
 from django.contrib.auth.models import User, Group
 from django.shortcuts import get_object_or_404
 import requests
 import json  
+from collections import defaultdict
 from django.contrib.gis.geoip2 import GeoIP2
 from datetime import datetime
 
@@ -47,25 +48,6 @@ def home(request):
     else: context = {}
     print(get_country_activities("Pakistan"))
     return render(request, 'home.html', context)
-
-    
-def search(request):
-    if request.method == 'POST':
-        city_country = request.POST.get('city_country')
-        check_in_date = request.POST.get('check_in_date', '')
-        check_out_date = request.POST.get('check_out_date', '')
-        print(f"city_country: {city_country}, check_in_date: {check_in_date}, check_out_date: {check_out_date}")
-        # Store the search parameters in the session
-        request.session['search_params'] = {
-            'city_country': city_country,
-            'check_in_date': check_in_date,
-            'check_out_date': check_out_date,
-        }
-
-        # Redirect to the searched_hotels view
-        return redirect('searched_hotels')
-
-    return render(request, 'search.html')
 
 def search_flights(request):
     if request.method == 'POST':
@@ -159,6 +141,23 @@ def get_weather_data(city_country):
         # If the request was not successful, print the error code
         return (f"Error fetching weather data: {weather_response.status_code}")
 
+def search(request):
+    if request.method == 'POST':
+        city_country = request.POST.get('city_country')
+        check_in_date = request.POST.get('check_in_date', '')
+        check_out_date = request.POST.get('check_out_date', '')
+        print(f"city_country: {city_country}, check_in_date: {check_in_date}, check_out_date: {check_out_date}")
+        # Store the search parameters in the session
+        request.session['search_params'] = {
+            'city_country': city_country,
+            'check_in_date': check_in_date,
+            'check_out_date': check_out_date,
+        }
+
+        # Redirect to the searched_hotels view
+        return redirect('searched_hotels')
+
+    return render(request, 'search.html')
 
 def searched_hotels(request):
     # Retrieve search parameters from the session
@@ -172,14 +171,27 @@ def searched_hotels(request):
     hotels = Hotel.objects.raw(get_query)
     count = len(list(hotels))
 
+    # Fetch services based on the search parameters
+    get_query = f" SELECT * FROM hotel_app1_hotelservices AS h1 JOIN hotel_app1_hotel AS h2 ON h1.hotel_id = h2.hotelid WHERE h2.city = '{city_country}'"
+    # Assuming HotelServices model has a 'service_name' field representing the service name
+    query_results = list(HotelServices.objects.raw(get_query))
+
+    # Initialize a defaultdict to store services for each hotel_id
+    services_dict = defaultdict(list)
+
+    # Organize the data into a dictionary where keys are hotel_id and values are lists of services
+    for result in query_results:
+        services_dict[result.hotel_id].append(result.service)
+
+    # Convert defaultdict to a regular dictionary
+    services = dict(services_dict)
+
     # Extracting countr and region
     geolocation_json = get_ip_geolocation_data()
     geolocation_data = json.loads(geolocation_json)
     country = geolocation_data['country']
     region = geolocation_data['region']
 
-    print(country)
-    print(region)
     context = {
          'city_country': city_country,
          'check_in_date': check_in_date,
@@ -189,9 +201,9 @@ def searched_hotels(request):
          'weather_data': get_weather_data(city_country),
          'user_country' : country,
          'user_region' : region,
+         'services': services,
      }
-
-
+    
     return render(request, 'searched_hotels.html', context)
 
 def add_hotel(request):
@@ -208,6 +220,10 @@ def hotel_details(request, id):
     return render(request, 'hotel_details.html', context)
 
 def booking(request, id):
+    # Get the suites data
+    get_query = f" SELECT * FROM hotel_app1_suites"
+    suites = Suites.objects.raw(get_query)
+
     req_hotel = Hotel.objects.filter(hotelid=id).first()
     # Getting data from the session
     search_params = request.session.get('search_params', {})
@@ -222,7 +238,7 @@ def booking(request, id):
         form = HotelBookingForm(request.POST)
         if form.is_valid():
             # Store relevant data in session
-            
+
             room_preference = form.cleaned_data['room_preference']
             print(room_preference)
             if(room_preference == "Standard"):
@@ -257,11 +273,35 @@ def booking(request, id):
 
     context = {
         'form': form,
-        'req_hotel': req_hotel
+        'req_hotel': req_hotel,
+        'suites' : suites
     }
 
     return render(request, 'booking.html', context)
 
+def hotel_summary(request, id):
+    # Get the suites data
+    get_query = f" SELECT * FROM hotel_app1_suites WHERE suiteid = {id}"
+    suite = Suites.objects.raw(get_query)
+
+    # Get other data
+    search_params = request.session.get('search_params', {})
+    check_in_date = search_params.get('check_in_date', '')
+    check_out_date = search_params.get('check_out_date', '')
+    # Convert the strings to datetime objects
+    check_in_date1 = datetime.strptime(check_in_date, "%Y-%m-%d")
+    check_out_date1 = datetime.strptime(check_out_date, "%Y-%m-%d")
+    no_of_days = (check_out_date1 - check_in_date1).days
+
+    context = {
+        'suite': suite[0],
+        'check_in_date': check_in_date,
+        'check_out_date': check_out_date,
+        'no_of_days': no_of_days,
+        'total_cost': suite[0].price_per_night * no_of_days,
+    }
+
+    return render(request, 'hotel_summary.html', context)
 
 def payment(request):
     # Retrieve data from session

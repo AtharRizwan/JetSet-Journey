@@ -24,6 +24,22 @@ class Hotel(models.Model):
     price_per_night = models.IntegerField(default=100)
     def __str__(self):
         return self.name 
+    
+class HotelServices(models.Model):
+    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, to_field='hotelid')
+    service = models.CharField(max_length=50)
+    def __str__(self):
+        return self.service
+    
+class Suites(models.Model):
+    suiteid = models.AutoField(primary_key=True)
+    name = models.CharField(max_length = 250)
+    description = models.CharField(max_length = 250)
+    bedrooms = models.IntegerField(default=100)
+    size = models.IntegerField(default=100)    
+    price_per_night = models.IntegerField(default=100)
+    def __str__(self):
+        return self.name    
 
 class RoomAvailability(models.Model):
     name = models.ForeignKey(Hotel, on_delete=models.CASCADE, to_field='name')
