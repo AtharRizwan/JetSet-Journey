@@ -8,10 +8,14 @@ class User_info(models.Model):
     city = models.CharField(max_length=50)
     country = models.CharField(max_length=50)
     address = models.CharField(max_length=50)
+    first_name = models.CharField(max_length=100, default="")
+    last_name = models.CharField(max_length=100, default="")
+    state = models.CharField(max_length=50, default="")
+    zip_code = models.IntegerField(default=10000)
+    email = models.EmailField(default="")
     def __str__(self):
         return self.user.first_name 
     
-
 class Hotel(models.Model):
     hotelid = models.AutoField(primary_key=True)
     name = models.CharField(max_length = 250, unique= True)    
@@ -60,5 +64,31 @@ class HotelBooking(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.room_preference} Room"
 
+class Airline(models.Model):
+    airline_id = models.AutoField(primary_key=True)
+    airline_name = models.CharField(max_length=50)
+    
+class Flight(models.Model):
+    flightid = models.AutoField(primary_key=True)
+    airline = models.ForeignKey(Airline, on_delete=models.CASCADE, to_field='airline_id')
+    departure_date = models.DateField(default = "2022-12-30")
+    departure_city = models.CharField(max_length = 250)    
+    destination_city = models.CharField(max_length = 250)    
+    price = models.IntegerField(default=100)
+    def __str__(self):
+        return self.airline
 
-
+class FlightBooking(models.Model):
+    booking_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
+    num_seats = models.IntegerField(default = 0)
+    payment_price = models.IntegerField(default = 0)
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.flight}"
+    
+class FlightBookedSeats(models.Model):
+    booking_id = models.ForeignKey(FlightBooking, on_delete=models.CASCADE)
+    seat_no = models.IntegerField()
+    def __str__(self):
+        return self.seat_no
