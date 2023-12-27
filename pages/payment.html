@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="payment.css">
+    <title>Sign Up</title>
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="container">
+            <div class="heading">
+                <h1>Payment</h1>
+            </div>
+            <form class="form-grid">
+                <div class="form-input-container">
+                    <label for="Name" class="form-input-label">Name</label>
+                    <input type="text" id="Name" class="form-input" placeholder="Enter your First Name" autocomplete="off">
+                </div>
+
+                <div class="form-input-container">
+                    <label for="card-number" class="form-input-label">Card Number</label>
+                    <input type="text" id="card-number" class="form-input" placeholder="Enter your card number" autocomplete="off">
+                </div>
+                <div class="form-input-container">
+                    <label for="cvv" class="form-input-label">CVV</label>
+                    <input type="text" id="cvv" class="form-input" placeholder="Enter your Phone Number"
+                        pattern="[0-9{4}-[0-9]{7}]" autocomplete="off">
+                </div>
+                <div class="form-input-container">
+                    <label for="expiry" class="form-input-label">Expiry</label>
+                    <input type="text" id="expiry" class="form-input" placeholder="MM/YY" autocomplete="off" maxlength="5" pattern="[0-9]/[0-9*">
+                </div>
+                <button type="submit" class="form-input-submit col-span-2">Pay</button>
+                <div class="to-login-page col-span-2">
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
