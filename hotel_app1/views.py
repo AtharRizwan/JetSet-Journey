@@ -280,9 +280,6 @@ def payment(request):
     if request.method == 'POST':
         form = PaymentForm(request.POST)
         if form.is_valid():
-            # Save the PaymentForm instance
-            payment_instance = form.save(commit=False)
-            payment_instance.save()
 
             # Create and save HotelBooking instance
             hotel_booking_instance = HotelBooking.objects.create(
@@ -291,7 +288,6 @@ def payment(request):
                 suite_id_id = suite,
                 no_of_days = no_of_days,
                 payment_price = total_cost,
-                payment_id = payment_instance.id,
             )
 
             # Clear session data after successful processing
@@ -299,7 +295,8 @@ def payment(request):
 
             # Continue with the rest of your payment processing logic
             messages.success(request, "Payment successful!")
-            return redirect('payment')
+            return redirect('home')
+        
         else:
             messages.error(request, "Payment form is invalid. Please check the entered information.")
     else:
@@ -441,25 +438,6 @@ def search_buses(request):
         departure_city = request.POST.get('departure_city')
         destination_city = request.POST.get('destination_city')
         departure_date = request.POST.get('departure_date', '')
-        bus_service = request.POST.get('airline_service')
-        # Store the search parameters in the session
-        request.session['flight_search_params'] = {
-            'departure_city': departure_city,
-            'destination_city': destination_city,
-            'departure_date': departure_date,
-            'bus_service': bus_service,
-        }
-
-        # Redirect to the flights_informations view
-        return redirect('flights_informations')
-    
-    return render(request, 'search_flights.html')
-
-def search_buses(request):
-    if request.method == 'POST':
-        departure_city = request.POST.get('departure_city')
-        destination_city = request.POST.get('destination_city')
-        departure_date = request.POST.get('departure_date', '')
         bus_service = request.POST.get('bus_service')
         # Store the search parameters in the session
         request.session['bus_search_params'] = {
@@ -509,7 +487,10 @@ def bus_details(request, id):
     }
     return render(request, 'bus_details.html', context)
 
-def bus_seat_selection(request, id):
+def bus_seat_selection(request):
     
     return render(request, 'bus_seat_selection.html')
 
+def aboutus(request):
+
+    return render(request, 'aboutus.html')

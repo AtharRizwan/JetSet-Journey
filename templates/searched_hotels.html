@@ -29,7 +29,7 @@
                     <li><a href="{% url 'search' %}">Hotels</a></li>
                     <li><a href="{% url 'search_flights'%}">Flights</a></li>
                     <li><a href="{% url 'search_buses' %}">Bus</a></li>
-                    <li><a href="">About Us</a></li>
+                    <li><a href="{% url 'aboutus' %}">About Us</a></li>
                   </ul>
                 </div>
                 {% if user.is_authenticated %}
@@ -71,7 +71,7 @@
               </div>
             <div class="bg-white px-10 py-6 rounded-md shadow-2xl w-3/4 flex flex-row">
 
-                <div class="overflow-x-auto flex w-3/4 py-4">
+                <div class="overflow-x-auto flex w-full py-4">
                   {% if count <= 0 %}
                   <h1 class = "text-center p-10 font-bold text-4xl" >There are no hotels. Please change your fields</h1>
                   {% else %}

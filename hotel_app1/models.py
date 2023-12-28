@@ -46,8 +46,6 @@ class RoomAvailability(models.Model):
     date = models.DateField()
     isAvailable = models.BooleanField(default=True)
 
-    def __str__(self):
-        return self.date
 
 class CreditCard(models.Model):
     card_no = models.CharField(max_length=50, primary_key=True)

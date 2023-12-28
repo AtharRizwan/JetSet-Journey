@@ -29,7 +29,7 @@
                     <li><a href="{% url 'search' %}">Hotels</a></li>
                     <li><a href="{% url 'search_flights'%}">Flights</a></li>
                     <li><a href="{% url 'search_buses' %}">Bus</a></li>
-                    <li><a href="">About Us</a></li>
+                    <li><a href="{% url 'aboutus' %}">About Us</a></li>
                   </ul>
                 </div>
                 {% if user.is_authenticated %}
@@ -245,7 +245,7 @@
             <div class="grid grid-cols-3 gap-8 px-6 w-3/4">
                 <div class="relative group hover:scale-105 transition-all duration-300 cursor-point">
                     <a href="">
-                        <img src="{% static 'pia.jpg' %}" alt="Image 1" class="w-full h-auto">
+                        <img src="{% static 'pia.jpeg' %}" alt="Image 1" class="w-full h-auto">
                         <div
                             class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <div

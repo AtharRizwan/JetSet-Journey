@@ -29,7 +29,12 @@
             <li><a href="{% url 'search' %}">Hotels</a></li>
             <li><a href="{% url 'search_flights'%}">Flights</a></li>
             <li><a href="{% url 'search_buses' %}">Bus</a></li>
-            <li><a href="">About Us</a></li>
+            <li><a href="{% url 'aboutus' %}">About Us</a></li>
+            {% if user.is_superuser %}
+            <li><a href="{% url 'add_hotel'%}">Add hotel</a></li>
+            <li><a href="{% url 'all_users' %}">View All Users</a></li>
+            <li><a href="{% url 'all_bookings' %}">View All Bookings</a></li>
+            {% endif %}
           </ul>
         </div>
         {% if user.is_authenticated %}
