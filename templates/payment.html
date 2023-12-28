@@ -1,22 +1,44 @@
-{% extends "templates/base.html" %}
+{% load static %}
 {% block body %}
-{% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <strong>{{message}}</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
-{% endif %}
-<div class="container">
-    <h1 class = "text-center my-4">Enter Your Credit Card Details</h1>
-        <form action="" method = 'POST'>
-            {% csrf_token %}
-            
-            {{form.as_p}}
-            <button type="submit" class="btn btn-primary">Confirm Booking</button>
-              
-        </form>
+<!DOCTYPE html>
+<html lang="en">
 
-</div>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'payment.css' %}">
+    <title>Payment</title>
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="container">
+            <div class="heading">
+                <h1>Payment</h1>
+            </div>
+            <form class="form-grid" method="POST">
+                {% csrf_token %}
+                <div class="form-input-container">
+                    <label for="card-number" class="form-input-label">Card Number</label>
+                    <input type="text" id="card-number" name="card_no" class="form-input" placeholder="Enter your card number" autocomplete="off">
+                </div>
+                <div class="form-input-container">
+                    <label for="cvv" class="form-input-label">CVV</label>
+                    <input type="text" id="cvv" name="cvv" class="form-input" placeholder="Enter your Phone Number"
+                        pattern="[0-9{4}-[0-9]{7}]" autocomplete="off">
+                </div>
+                <div class="form-input-container">
+                    <label for="expiry" class="form-input-label">Expiry</label>
+                    <input type="text" id="expiry" name="expiry" class="form-input" placeholder="MM/YY" autocomplete="off" maxlength="5" pattern="[0-9]/[0-9*">
+                </div>
+                <button type="submit" class="form-input-submit col-span-2">Confirm Booking</button>
+                <div class="to-login-page col-span-2">
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
 {% endblock body %}

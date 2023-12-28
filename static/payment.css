@@ -1,0 +1,128 @@
+/* static/payment.css */
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins");
+
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Poppins", sans-serif;
+}
+:root
+{
+    --lavender: #bb8fff;
+    --light-blue: #93c9ff;
+    --purple: #9756f7;
+    --sky-blue: #5d98d2;
+}
+
+.main-container
+{   
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, var(--lavender),var(--light-blue)) ;
+    height: 100vh;
+    background-repeat: no-repeat;
+}
+
+.container
+{
+    position: relative;
+    background: white;
+    width: 100%;
+    max-width: 50%;
+    padding: 30px;
+    border-radius: 6px;
+    box-shadow: 0 5px 10px 8px rgb(0 0 0 / 0.1);
+
+}
+
+.heading
+{
+    position: relative;
+    font-size: 1.4rem;
+}
+
+.heading::before
+{
+    position: absolute;
+    height:5px;
+    width: 50px;
+    background: linear-gradient(135deg , var(--purple) 30%, var(--sky-blue) 70%, var(--purple));
+    content:"";
+    bottom: 0;
+
+}
+
+.form-grid
+{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 15px 30px;
+    margin-top: 20px;
+}
+
+.form-input-container
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.form-input-label
+{
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.form-input
+{
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+.form-input-submit
+{
+    background: linear-gradient(135deg, var(--lavender), var(--light-blue));
+    color: white;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius:  4px;
+    font-size: 0.9rem;
+    transition: all 0.25s ease-out;
+}
+
+.form-input-submit:hover{
+    opacity: 0.85;
+}
+
+.col-span-2
+{
+    grid-column: span 2 / span 2;
+}
+
+.to-login-page,.to-signup-page
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.to-login-page a, .to-signup-page a{
+    cursor:pointer;
+    text-decoration: none;
+    font-weight: bolder;
+    color: var(--sky-blue);
+    transition: all 0.2s ease-in-out;
+}
+.to-login-page a:hover, .to-signup-page a:hover{
+    color: #7924f8;
+    font-weight: 1500;
+}
