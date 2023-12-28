@@ -11,7 +11,7 @@
     .bg-img-main {
         background: url(./images/cover_bg_1.jpg);
     }
-
+    
     .bg-img-bus {
         background: url(./images/bg-img-bus.jpg);
     }
@@ -24,6 +24,9 @@
         background: url(./images/bg-img-hotel.jpg);
     }
 
+    .bg-img-des{
+        background: url(./images/bg-destinations.jpg);
+    }
     .bg-img-about-us{
         background-image: url(./images/about-us-page-bg.jpeg);
     }
