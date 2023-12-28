@@ -20,9 +20,13 @@
         background: url(./images/bg-img-flight.jpg);
     }
 
-.bg-img-hotel{
-    background: url(./images/bg-img-hotel.jpg);
-}
+    .bg-img-hotel{
+        background: url(./images/bg-img-hotel.jpg);
+    }
+
+    .bg-img-about-us{
+        background-image: url(./images/about-us-page-bg.jpeg);
+    }
 
     .bg-img {
         background-position: center;
@@ -86,6 +90,10 @@
     .steps:hover{
         background-color: slategray ;
         border-radius: 8px;
+    }
+
+    .max-h-self{
+        max-height: 505px;
     }
 
     .min-w-self{
