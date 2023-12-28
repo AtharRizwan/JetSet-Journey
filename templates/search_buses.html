@@ -1,0 +1,131 @@
+{% load static %}
+{% block body %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'index.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Base</title>
+</head>
+
+<body class="bg-img-bus bg-img bg-cover bg-bottom">
+    <div class="bg-black bg-opacity-30">
+        <header
+            class="bg-gradient-to-b from-slate-100 via-white to-transparent opacity-90 text-xl font-serif font-bold -mt-7">
+            <nav class="mx-auto flex max-w-7xl items-center justify-between px-2 pt-2  lg:px-8" aria-label="Global">
+                <div class="-mb-4">
+                  <a href="{% url 'home' %}" class="-m-1.5 p-1.5">
+                    <span class="sr-only">Your Company</span>
+                    <img class="h-20 w-auto" src="{% static 'logo2.png' %}" alt="">
+                  </a>
+                </div>
+                <div class="pt-4">
+                  <ul class="flex justify-around items-center px-4">
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'search' %}">Hotels</a></li>
+                    <li><a href="{% url 'search_flights'%}">Flights</a></li>
+                    <li><a href="{% url 'search_buses' %}">Bus</a></li>
+                    <li><a href="">About Us</a></li>
+                  </ul>
+                </div>
+                {% if user.is_authenticated %}
+                <a class="pt-4" href="{% url 'log_out' %}">
+                  Log Out
+                </a>
+                {% else %}
+                <a class="pt-4" href="{% url 'log_in' %}">
+                  Log In
+                </a>
+                {% endif %}
+              </nav>
+        </header>
+        <div class="flex text-4xl justify-center items-center h-56 text-white font-extrabold">
+            <h1 class="">
+                Travel the Country with Jet-Set Journey
+            </h1>
+        </div>
+        <div class="flex items-center justify-center flex-col">
+            <h4 class=" text-white text-center mb-4 font-black text-3xl">Choose Your Travel Destination</h4>
+            <form action="" class="bg-white px-10 py-6 rounded-md shadow-2xl form-grid w-2/4">
+                <div class="form-input-container">
+                    <label for="departure" class="form-input-label">Departure City</label>
+                    <input type="text" id="departure"
+                        class="form-input px-2 py-1 bg-slate-200 shadow-md active:border-none"
+                        placeholder="Enter Departure City" autocomplete="off" required>
+                </div>
+                <div class="form-input-container">
+                    <label for="destination" class="form-input-label">Destination City</label>
+                    <input type="text" id="destination" class="form-input px-2 py-1 bg-slate-200 shadow-md"
+                        placeholder="Enter Destination City" autocomplete="off" required>
+                </div>
+                <div class="form-input-container">
+                    <label for="departure-date" class="form-input-label">Departure Date</label>
+                    <input type="date" id="departure-date" class="form-input px-2 py-1 bg-slate-200 shadow-md"
+                        placeholder="Enter Article Source" autocomplete="off" required>
+                </div>
+                <div class="form-input-container">
+                    <label for="bus-service" class="form-input-label">Bus Service</label>
+                    <input type="text" id="bus-service" class="form-input px-2 py-1 bg-slate-200 shadow-md"
+                        placeholder="Select Bus Service" autocomplete="off" required>
+                </div>
+                <button type="submit"
+                    class="form-input-submit col-span-2 mt-3 bg-slate-500 py-1 shadow-2xl text-white hover:text-black font-medium">Search</button>
+            </form>
+        </div>
+        <div>
+            <div class="flex text-4xl mt-16 justify-center items-center font-extrabold text-gray-100 mb-5">
+                <h1 class="bg-black bg-opacity-60 px-4 py-2 pb-4 shadow-2xl ">Popular Bus Services in Pakistan</h1>
+            </div>
+            <div class="flex justify-center items-center h-full">
+                <div class="grid grid-cols-3 gap-8 px-6 w-3/4">
+                    <div class="relative group hover:scale-105 transition-all duration-300 cursor-point">
+                        <a href="">
+                            <img src="{% static 'img-1.jpg' %}" alt="Image 1" class="w-full h-auto">
+                            <div
+                                class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div
+                                    class="text-white text-center text-xl bg-black px-5 py-2 bg-opacity-80 rounded-xl shadow-xl">
+                                    <p>Road Master</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="relative group hover:scale-105 transition-all duration-300 cursor-point">
+                        <a href="">
+                            <img src="{% static 'img-2.jpg' %}" alt="Image 1" class="w-full h-auto">
+                            <div
+                                class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div
+                                    class="text-white text-center text-xl bg-black px-5 py-2 bg-opacity-80 rounded-xl shadow-xl">
+                                    <p>Faisal Movers</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="relative group hover:scale-105 transition-all duration-300 cursor-point">
+                        <a href="">
+                            <img src="{% static 'img-3.jpg' %}" alt="Image 1" class="w-full h-auto">
+                            <div
+                                class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div
+                                    class="text-white text-center text-xl bg-black px-5 py-2 bg-opacity-80 rounded-xl shadow-xl">
+                                    <p>Daewoo</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer class="bg-black bg-opacity-70 text-slate-200 py-4 mt-5 flex justify-center items-center font-mono">
+            <a href="" class="cursor-pointer">Jet-Set Journey</a>
+        </footer>
+
+</body>
+
+</html>
+{% endblock body %}

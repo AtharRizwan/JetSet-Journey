@@ -21,5 +21,9 @@ urlpatterns = [
     path('search_flights/', views.search_flights, name='search_flights'),
     path('flights_informations/', views.flights_informations, name='flights_informations'),
     path('flights_informations/<int:id>', views.flight_details, name='flights_information'),
-    path('plane_seat_selection/<int:id>', views.plane_seat_selection, name='plane_seat_selection')
+    path('plane_seat_selection/<int:id>', views.plane_seat_selection, name='plane_seat_selection'),
+    path('search_buses/', views.search_buses, name='search_buses'),
+    path('buses_informations/', views.buses_informations, name='buses_informations'),
+    path('buses_informations/<int:id>', views.bus_details, name='buses_information'),
+    path('bus_seat_selection/<int:id>', views.bus_seat_selection, name='bus_seat_selection')
 ]

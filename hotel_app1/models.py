@@ -95,3 +95,33 @@ class FlightBookedSeats(models.Model):
     seat_no = models.IntegerField()
     def __str__(self):
         return self.seat_no
+
+class BusCompany(models.Model):
+    company_id = models.AutoField(primary_key=True)
+    company_name = models.CharField(max_length=50)
+
+class Bus(models.Model):
+    busid = models.AutoField(primary_key=True)
+    company = models.ForeignKey(BusCompany, on_delete=models.CASCADE, to_field='company_id')
+    departure_date = models.DateField(default = "2023-12-30")
+    departure_time = models.TimeField(default = "12:00:00")
+    departure_city = models.CharField(max_length = 250)    
+    destination_city = models.CharField(max_length = 250)    
+    price = models.IntegerField(default=100)
+    def __str__(self):
+        return self.departure_city + " to " + self.destination_city
+    
+class BusBooking(models.Model):
+    booking_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    bus = models.ForeignKey(Bus, on_delete=models.CASCADE)
+    num_seats = models.IntegerField(default = 0)
+    payment_price = models.IntegerField(default = 0)
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.bus}"
+    
+class BusBookedSeats(models.Model):
+    booking_id = models.ForeignKey(BusBooking, on_delete=models.CASCADE)
+    seat_no = models.IntegerField()
+    def __str__(self):
+        return self.seat_no
