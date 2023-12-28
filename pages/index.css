@@ -87,8 +87,21 @@
         padding-left: 20px;
     }
 
+    .steps-2{
+        display: flex;
+        width: 100%;
+        align-items: center;
+        font-weight: 800;
+        padding-left: 20px;
+    }
+
     .steps:hover{
         background-color: slategray ;
+        border-radius: 8px;
+    }
+
+    .steps-2:hover{
+        background-color: rgb(185 28 28);
         border-radius: 8px;
     }
 
@@ -115,5 +128,12 @@
     .seat:hover{
         background-color: lightblue;
     }
+
+    .h-s-9{
+        height: 90%;
+    }
     
+    .h-s-1{
+        height: 10%;
+    }
 }

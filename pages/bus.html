@@ -37,85 +37,336 @@
         </header>
         <div class="flex text-4xl justify-center items-center h-56 text-white font-extrabold">
             <h1 class="">
-                Travel the Country with Jet-Set Journey
+                Travel the World with Jet-Set Journey
             </h1>
         </div>
         <div class="flex items-center justify-center flex-col">
             <h4 class=" text-white text-center mb-4 font-black text-3xl">Choose Your Travel Destination</h4>
-            <form action="" class="bg-white px-10 py-6 rounded-md shadow-2xl form-grid w-2/4">
-                <div class="form-input-container">
-                    <label for="departure" class="form-input-label">Departure City</label>
-                    <input type="text" id="departure"
-                        class="form-input px-2 py-1 bg-slate-200 shadow-md active:border-none"
-                        placeholder="Enter Departure City" autocomplete="off" required>
+            <div class="bg-white px-10 py-6 rounded-md shadow-2xl w-3/4 flex flex-row min-h-96">
+                <div class="w-1/3 bg-red-800 mr-10 rounded-lg flex flex-col items-center text-white ">
+                    <div class="steps-2 h-1/4">
+                        <h2 class="rounded-full px-2 border-white border-2">1</h2>
+                        <p class="steps-p ml-4 pr-3 ">Destination Information</p>
+                    </div>
+                    <div class="steps-2 h-1/4">
+                        <h2 class="rounded-full px-2 border-white border-2">2</h2>
+                        <p class="steps-p ml-4 ">Bus Information</p>
+                    </div>
+                    <div class="steps-2 h-1/4">
+                        <h2 class="rounded-full px-2 border-white border-2">3</h2>
+                        <p class="steps-p ml-4">Seat Selection</p>
+                    </div>
+                    <div class="steps-2 h-1/4">
+                        <h2 class="rounded-full px-2 border-white border-2">4</h2>
+                        <p class="steps-p ml-4">Summary</p>
+                    </div>
                 </div>
-                <div class="form-input-container">
-                    <label for="destination" class="form-input-label">Destination City</label>
-                    <input type="text" id="destination" class="form-input px-2 py-1 bg-slate-200 shadow-md"
-                        placeholder="Enter Destination City" autocomplete="off" required>
+                <!-- <div class="overflow-x-auto flex w-3/4">
+                    <form action="" class="form-grid w-full">
+                        <div class="col-span-2 -mt-6 font-bold text-2xl font-serif">
+                            Destination Information
+                        </div>
+                        <div class="form-input-container">
+                            <label for="departure" class="form-input-label">Departure City</label>
+                            <input type="text" id="departure"
+                                class="form-input px-2 py-1 bg-slate-200 shadow-md active:border-none"
+                                placeholder="Enter Departure City" autocomplete="off" required>
+                        </div>
+                        <div class="form-input-container">
+                            <label for="destination" class="form-input-label">Destination City</label>
+                            <input type="text" id="destination" class="form-input px-2 py-1 bg-slate-200 shadow-md"
+                                placeholder="Enter Destination City" autocomplete="off" required>
+                        </div>
+                        <div class="form-input-container">
+                            <label for="departure-date" class="form-input-label">Departure Date</label>
+                            <input type="date" id="departure-date" class="form-input px-2 py-1 bg-slate-200 shadow-md"
+                                placeholder="" autocomplete="off" required>
+                        </div>
+                        <div class="form-input-container">
+                            <label for="bus-service" class="form-input-label">Bus Service</label>
+                            <input type="text" id="bus-service" class="form-input px-2 py-1 bg-slate-200 shadow-md"
+                                placeholder="Select Bus Service" autocomplete="off" required>
+                        </div>
+                        <button type="submit"
+                            class="form-input-submit col-span-2 mt-3 bg-red-800 py-1 shadow-2xl text-white hover:text-black font-medium">Search</button>
+                    </form>
+                </div> -->
+
+                <!-- <div class="overflow-x-auto flex w-3/4 py-4">
+                    <div class="bg-white border border-gray-200 rounded-lg shadow mx-1 min-w-self">
+                        <img class="rounded-t-lg h-48 w-full" src="./images/pia.jpg" alt="" />
+                        <div class="p-5">
+                            <div>
+                                <h5 class="text-2xl min-h-self font-bold tracking-tight text-gray-900">
+                                    Road Master
+                                </h5>
+                            </div>
+                            <div class="font-normal text-gray-700">
+                                <h5><span class="font-bold">Departure City: </span>Lahore</h5>
+                                <h5><span class="font-bold">Destination City: </span>Islamabad</h5>
+                                <h5><span class="font-bold">Departure Time: </span>13:00</h5>
+                                <h5><span class="font-bold">Arrvial Time: </span>15:00</h5>
+                                <h5><span class="font-bold">Travel Duration: </span>2 hours</h5>
+                            </div>
+                            <div class="flex justify-between">
+                                <button class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center
+                                    text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                    Select
+                                </button>
+                                <button
+                                    class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                    PKR 1800
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg shadow mx-1 min-w-self">
+                        <img class="rounded-t-lg h-48" src="./images/airsial.jpeg" alt="" />
+                        <div class="p-5 flex flex-col">
+                            <div>
+                                <h5 class="text-2xl min-h-self font-bold tracking-tight text-gray-900">
+                                    Faisal Movers
+                                </h5>
+                            </div>
+                            <div class="font-normal text-gray-700">
+                                <h5><span class="font-bold">Departure City: </span>Lahore</h5>
+                                <h5><span class="font-bold">Destination City: </span>Islamabad</h5>
+                                <h5><span class="font-bold">Departure Time: </span>13:00</h5>
+                                <h5><span class="font-bold">Arrvial Time: </span>15:00</h5>
+                                <h5><span class="font-bold">Travel Duration: </span>2 hours</h5>
+                            </div>
+                            <div class="flex justify-between">
+                                <button class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center
+                                    text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                    Select
+                                </button>
+                                <button
+                                    class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                    PKR 2500
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg shadow mx-1 min-w-self">
+                        <img class="rounded-t-lg h-48" src="./images/airblue.jpeg" alt="Plane Pic" />
+                        <div class="p-5">
+                            <div>
+                                <h5 class="text-2xl min-h-self font-bold tracking-tight text-gray-900">
+                                    Daewoo
+                                </h5>
+                            </div>
+                            <div class="font-normal text-gray-700">
+                                <h5><span class="font-bold">Departure City: </span>Lahore</h5>
+                                <h5><span class="font-bold">Destination City: </span>Islamabad</h5>
+                                <h5><span class="font-bold">Departure Time: </span>13:00</h5>
+                                <h5><span class="font-bold">Arrvial Time: </span>15:00</h5>
+                                <h5><span class="font-bold">Travel Duration: </span>2 hours</h5>
+                            </div>
+                            <div class="flex justify-between">
+                                <button class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center
+                                    text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                    Select
+                                </button>
+                                <button
+                                    class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                    PKR 2000
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+
+                <!-- <div class="overflow-x-auto flex w-3/4 py-4 flex-col ">
+                    <div class="bg-black bg-opacity-30 w-full rounded-xl h-s-9">
+                        <div class="grid grid-rows-5 grid-flow-col gap-2 text-center px-3 py-3 w-full h-full">
+                            <div class="seat">1</div>
+                            <div class="seat">2</div>
+                            <div class="bg-transparent rounded-full"></div>
+                            <div class="seat">3</div>
+                            <div class="seat">4</div>
+                            <div class="seat">5</div>
+                            <div class="seat">6</div>
+                            <div class="bg-transparent rounded-full"></div>
+                            <div class="seat">7</div>
+                            <div class="seat">8</div>
+                            <div class="seat">9</div>
+                            <div class="seat">10</div>
+                            <div class="bg-transparent rounded-full"></div>
+                            <div class="seat">11</div>
+                            <div class="seat">12</div>
+                            <div class="seat">13</div>
+                            <div class="seat">14</div>
+                            <div class="bg-transparent rounded-full"></div>
+                            <div class="seat">15</div>
+                            <div class="seat">16</div>
+                            <div class="seat">17</div>
+                            <div class="seat">18</div>
+                            <div class="bg-transparent rounded-full"></div>
+                            <div class="seat">19</div>
+                            <div class="seat">20</div>
+                            <div class="seat">21</div>
+                            <div class="seat">22</div>
+                            <div class="bg-transparent rounded-full"></div>
+                            <div class="seat">23</div>
+                            <div class="seat">24</div>
+                            <div class="seat">25</div>
+                            <div class="seat">26</div>
+                            <div class="bg-transparent rounded-full"></div>
+                            <div class="seat">27</div>
+                            <div class="seat">28</div>
+                            <div class="seat">29</div>
+                            <div class="seat">30</div>
+                            <div class="bg-transparent rounded-full"></div>
+                            <div class="seat">31</div>
+                            <div class="seat">32</div>
+                            <div class="seat">33</div>
+                            <div class="seat">34</div>
+                            <div class="bg-transparent rounded-full"></div>
+                            <div class="seat">35</div>
+                            <div class="seat">36</div>
+                            <div class="seat">37</div>
+                            <div class="seat">38</div>
+                            <div class="bg-transparent rounded-full"></div>
+                            <div class="seat">39</div>
+                            <div class="seat">40</div>
+                        </div>
+                    </div>
+                    <button class="h-s-1 bg-red-700 mt-2 rounded-lg hover:bg-red-600 -mb-5 text-lg font-medium text-white">
+                        Next
+                    </button>
+                </div> -->
+
+                <div class="overflow-x-auto flex w-3/4 py-4">
+                    <div class="flex justify-start flex-col w-fit">
+                        <div class=" -mt-6 p-2 font-bold text-2xl font-serif align-middle">
+                            <p>Summary</p>
+                        </div>
+                        <div class="bg-white border border-gray-200 rounded-lg shadow mx-1 min-w-self">
+                            <img class="rounded-t-lg h-48" src="./images/airblue.jpeg" alt="Plane Pic" />
+                            <div class="p-5">
+                                <div>
+                                    <h5 class="text-2xl min-h-self font-bold tracking-tight text-gray-900">
+                                        Daewoo
+                                    </h5>
+                                </div>
+                                <div class="font-normal text-gray-700">
+                                    <h5><span class="font-bold">Departure City: </span>Lahore</h5>
+                                    <h5><span class="font-bold">Destination City: </span>Islamabad</h5>
+                                    <h5><span class="font-bold">Departure Time: </span>13:00</h5>
+                                    <h5><span class="font-bold">Arrvial Time: </span>15:00</h5>
+                                    <h5><span class="font-bold">Travel Duration: </span>2 hours</h5>
+                                </div>
+                                <div class="flex justify-between">
+
+                                    <button
+                                        class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                        PKR 2000
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-start flex-col w-fit pl-4  ">
+                        <div class=" -mt-6 p-2 font-bold text-2xl font-serif align-middle">
+                            <p>Total Cost</p>
+                        </div>
+                        <div class="flex flex-row overflow-x-auto py-4 ">
+                            <div
+                                class="cursor-pointer rounded-xl bg-slate-50 shadow-lg border-gray-200 hover:shadow-xl ml-2">
+                                <a href="#">
+                                    <div class="mt-1 p-2">
+                                        <h2 class="text-slate-800 font-serif font-bold text-lg">Road Master</h2> 
+                                        <div class="text-xs p-1 border-t-2 border-b-2 border-gray-200">
+                                            <div>
+                                                <ul class="flex flex-row items-start justify-center">
+                                                    <li>Premium Bus Service</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 flex items-end justify-between">
+                                            <p>
+                                                <span class="text-sm font-bold text-orange-500">Rs/- 2000 per Seat</span>
+                                                <span class="text-sm text-slate-400">/night</span>
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <h2 class="text-sm font-serif p-1 border-t-2 border-b-2 border-gray-200">Seats Booked:</h2>
+                                            <h2 class="text-sm font-serif p-1 border-t-0 border-b-2 border-gray-200">3, 4, 5</h2>
+                                            <h2 class="text-sm font-serif p-1 border-t-0 border-b-2 border-gray-200">No. of Seats: 3</h2>
+                                        </div>
+                                        <div>
+                                        <h2 class="text-slate-800 font-serif font-bold">Total Cost</h2>
+                                        <div class="mt-0 flex items-end justify-between">
+                                            <p>
+                                                <span class="text-lg font-bold font-mono text-orange-500">Rs/- 6000</span>
+                                            </p>
+                                        </div>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'payment' %}">
+                                        <button class="bg-slate-500 text-white w-full py-2 rounded-b-xl hover:bg-slate-600">
+                                            Proceed to Checkout
+                                        </button>
+                                    </a>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-input-container">
-                    <label for="departure-date" class="form-input-label">Departure Date</label>
-                    <input type="date" id="departure-date" class="form-input px-2 py-1 bg-slate-200 shadow-md"
-                        placeholder="Enter Article Source" autocomplete="off" required>
-                </div>
-                <div class="form-input-container">
-                    <label for="bus-service" class="form-input-label">Bus Service</label>
-                    <input type="text" id="bus-service" class="form-input px-2 py-1 bg-slate-200 shadow-md"
-                        placeholder="Select Bus Service" autocomplete="off" required>
-                </div>
-                <button type="submit"
-                    class="form-input-submit col-span-2 mt-3 bg-slate-500 py-1 shadow-2xl text-white hover:text-black font-medium">Search</button>
-            </form>
-        </div>
-        <div>
-            <div class="flex text-4xl mt-16 justify-center items-center font-extrabold text-gray-100 mb-5">
-                <h1 class="bg-black bg-opacity-60 px-4 py-2 pb-4 shadow-2xl ">Popular Bus Services in Pakistan</h1>
             </div>
-            <div class="flex justify-center items-center h-full">
-                <div class="grid grid-cols-3 gap-8 px-6 w-3/4">
-                    <div class="relative group hover:scale-105 transition-all duration-300 cursor-point">
-                        <a href="destinations.html">
-                            <img src="./images/img-1.jpg" alt="Image 1" class="w-full h-auto">
+        </div>
+    </div>
+
+    </div>
+    <div>
+        <div class="flex text-4xl mt-16 justify-center items-center font-extrabold text-gray-100 mb-5">
+            <h1 class="bg-black bg-opacity-60 px-4 py-2 pb-4 shadow-2xl ">Popular Bus Services in Pakistan</h1>
+        </div>
+        <div class="flex justify-center items-center h-full">
+            <div class="grid grid-cols-3 gap-8 px-6 w-3/4">
+                <div class="relative group hover:scale-105 transition-all duration-300 cursor-point">
+                    <a href="destinations.html">
+                        <img src="./images/pia.jpg" alt="Image 1" class="w-full h-auto">
+                        <div
+                            class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <div
-                                class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div
-                                    class="text-white text-center text-xl bg-black px-5 py-2 bg-opacity-80 rounded-xl shadow-xl">
-                                    <p>Road Master</p>
-                                </div>
+                                class="text-white text-center text-xl bg-black px-5 py-2 bg-opacity-80 rounded-xl shadow-xl">
+                                <p>Road Master</p>
                             </div>
-                        </a>
-                    </div>
-                    <div class="relative group hover:scale-105 transition-all duration-300 cursor-point">
-                        <a href="destinations.html">
-                            <img src="./images/img-2.jpg" alt="Image 1" class="w-full h-auto">
+                        </div>
+                    </a>
+                </div>
+                <div class="relative group hover:scale-105 transition-all duration-300 cursor-point">
+                    <a href="destinations.html">
+                        <img src="./images/airsial.jpeg" alt="Image 1" class="h-56">
+                        <div
+                            class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <div
-                                class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div
-                                    class="text-white text-center text-xl bg-black px-5 py-2 bg-opacity-80 rounded-xl shadow-xl">
-                                    <p>Faisal Movers</p>
-                                </div>
+                                class="text-white text-center text-xl bg-black px-5 py-2 bg-opacity-80 rounded-xl shadow-xl">
+                                <p>Faisal Movers</p>
                             </div>
-                        </a>
-                    </div>
-                    <div class="relative group hover:scale-105 transition-all duration-300 cursor-point">
-                        <a href="destinations.html">
-                            <img src="./images/img-3.jpg" alt="Image 1" class="w-full h-auto">
+                        </div>
+                    </a>
+                </div>
+                <div class="relative group hover:scale-105 transition-all duration-300 cursor-point">
+                    <a href="destinations.html">
+                        <img src="./images/airblue.jpeg" alt="Image 1" class="h-56">
+                        <div
+                            class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <div
-                                class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div
-                                    class="text-white text-center text-xl bg-black px-5 py-2 bg-opacity-80 rounded-xl shadow-xl">
-                                    <p>Daewoo</p>
-                                </div>
+                                class="text-white text-center text-xl bg-black px-5 py-2 bg-opacity-80 rounded-xl shadow-xl">
+                                <p>Daewoo</p>
                             </div>
-                        </a>
-                    </div>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>
-        <footer class="bg-black bg-opacity-70 text-slate-200 py-4 mt-5 flex justify-center items-center font-mono">
-            <a href="aboutus.html" class="cursor-pointer">Jet-Set Journey</a>
-        </footer>
+    </div>
+    <footer class="bg-black bg-opacity-70 text-slate-200 py-4 mt-5 flex justify-center items-center font-mono">
+        <a href="aboutus.html" class="cursor-pointer">Jet-Set Journey</a>
+    </footer>
 
 </body>
 
