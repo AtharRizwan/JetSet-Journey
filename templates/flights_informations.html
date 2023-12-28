@@ -18,25 +18,30 @@
             class="bg-gradient-to-b from-slate-100 via-white to-transparent opacity-90 text-xl font-serif font-bold -mt-7">
             <nav class="mx-auto flex max-w-7xl items-center justify-between px-2 pt-2  lg:px-8" aria-label="Global">
                 <div class="-mb-4">
-                    <a href="{% url 'home' %}" class="-m-1.5 p-1.5">
-                        <span class="sr-only">Your Company</span>
-                        <img class="h-20 w-auto" src="{% static 'logo2.png' %}" alt="">
-                    </a>
+                  <a href="{% url 'home' %}" class="-m-1.5 p-1.5">
+                    <span class="sr-only">Your Company</span>
+                    <img class="h-20 w-auto" src="{% static 'logo2.png' %}" alt="">
+                  </a>
                 </div>
                 <div class="pt-4">
-                    <ul class="flex justify-around items-center px-4">
-                        <li><a href="{% url 'home' %}">Home</a></li>
-                        <li><a href="{% url 'search' %}">Hotels</a></li>
-                        <li><a href="{% url 'search_flights'%}">Flights</a></li>
-                        <li><a href="">Bus</a></li>
-                        <li><a href="">Popular Destinations</a></li>
-                        <li><a href="">About Us</a></li>
-                    </ul>
+                  <ul class="flex justify-around items-center px-4">
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'search' %}">Hotels</a></li>
+                    <li><a href="{% url 'search_flights'%}">Flights</a></li>
+                    <li><a href="{% url 'search_buses' %}">Bus</a></li>
+                    <li><a href="">About Us</a></li>
+                  </ul>
                 </div>
-                <div class="pt-4">
-                    Account
-                </div>
-            </nav>
+                {% if user.is_authenticated %}
+                <a class="pt-4" href="{% url 'log_out' %}">
+                  Log Out
+                </a>
+                {% else %}
+                <a class="pt-4" href="{% url 'log_in' %}">
+                  Log In
+                </a>
+                {% endif %}
+              </nav>
         </header>
         <div class="flex text-4xl justify-center items-center h-56 text-white font-extrabold">
             <h1 class="">
@@ -83,12 +88,17 @@
                                 <h5><span class="font-bold">Departure Time: </span>{{flight.departure_time}}</h5>
                             </div>
                             <div class="flex justify-between">
+                            {% if user.is_authenticated %}
                             <a href="{% url 'plane_seat_selection' id=flight.airline_id %}">
                                 <button class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center
                                     text-white bg-blue-700 rounded-lg hover:bg-blue-800">
                                     Select
                                 </button>
                             </a>
+                            {% else %}
+                            <p class="text-red-500">You must be logged 
+                                <br> in to book flight</p>
+                            {% endif %}
                                 <button
                                     class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
                                     Rs/- {{flight.price}}

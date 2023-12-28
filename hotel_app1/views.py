@@ -7,6 +7,7 @@ from django.contrib import messages
 from .forms import loginForm, CustomUserChangeForm, HotelBookingForm, PaymentForm
 from .models import Hotel, RoomAvailability, User_info, HotelBooking, CreditCard
 from .models import Airline, Flight, FlightBooking, FlightBookedSeats, Suites, HotelServices
+from .models import BusCompany, Bus, BusBooking, BusBookedSeats
 from django.contrib.auth.models import User, Group
 from django.shortcuts import get_object_or_404
 import requests
@@ -48,6 +49,7 @@ def home(request):
         }
     else: context = {}
     print(get_country_activities("Pakistan"))
+
     return render(request, 'home.html', context)
 
 def search_flights(request):
@@ -264,6 +266,7 @@ def hotel_summary(request, id):
     }
     request.session['suite'] = id
     request.session['total_cost'] = suite[0].price_per_night * no_of_days
+    request.session['no_of_days'] = no_of_days
 
     return render(request, 'hotel_summary.html', context)
 
@@ -272,56 +275,49 @@ def payment(request):
     total_cost = request.session.get('total_cost', '')
     suite = request.session.get('suite', '')
     hotel_booked = request.session.get('hotel_booked', '')
+    no_of_days = request.session.get('no_of_days', '')
 
     if request.method == 'POST':
-        # Check card validity
-        card_no = request.POST.get('card_no', '')
-        cvv = request.POST.get('cvv', '')
-        expiry = request.POST.get('expiry', '')
-    #    if validators.credit_card(card_no):
-    #         # Save the PaymentForm instance
-    #         payment_instance = form.save(commit=False)
-            
-    #         # Ensure that user_id is set for the CreditCard instance
-    #         payment_instance.user_id = booking_data.get('user', '')
-    #         payment_instance.save()
+        form = PaymentForm(request.POST)
+        if form.is_valid():
+            # Save the PaymentForm instance
+            payment_instance = form.save(commit=False)
+            payment_instance.save()
 
-    #         # Create and save HotelBooking instance
-    #         hotel_booking_instance = HotelBooking.objects.create(
-    #             user_id=booking_data.get('user', ''),
-    #             hotel_id=booking_data.get('hotel', ''),
-    #             no_of_days=booking_data.get('no_of_days', ''),
-    #             payment_price=booking_data.get('payment_price', ''),
-    #             first_name=booking_data.get('first_name', ''),
-    #             last_name=booking_data.get('last_name', ''),
-    #             address=booking_data.get('address', ''),
-    #             city=booking_data.get('city', ''),
-    #             state=booking_data.get('state', ''),
-    #             zip_code=booking_data.get('zip_code', ''),
-    #             phone=booking_data.get('phone', ''),
-    #             email=booking_data.get('email', ''),
-    #             room_preference=booking_data.get('room_preference', ''),
-    #             special_requests=booking_data.get('special_requests', ''),
-    #         )
+            # Create and save HotelBooking instance
+            hotel_booking_instance = HotelBooking.objects.create(
+                user_id = request.user.id,
+                hotel_id = hotel_booked,
+                suite_id_id = suite,
+                no_of_days = no_of_days,
+                payment_price = total_cost,
+                payment_id = payment_instance.id,
+            )
 
-    #         # Clear session data after successful processing
-    #         del request.session['booking_data']
+            # Clear session data after successful processing
+            del request.session
 
-    #         # Continue with the rest of your payment processing logic
-    #         messages.success(request, "Payment successful!")
-    #         return redirect('payment')
-    #     else:
-    #         messages.error(request, "Payment form is invalid. Please check the entered information.")
-    # else:
-    #     form = PaymentForm()
+            # Continue with the rest of your payment processing logic
+            messages.success(request, "Payment successful!")
+            return redirect('payment')
+        else:
+            messages.error(request, "Payment form is invalid. Please check the entered information.")
+    else:
+        form = PaymentForm()
 
-    # context = {
-    #     'form': form,
-    # }
-    return render(request, 'payment.html')
+    context = {
+        'form': form,
+    }
+    return render(request, 'payment.html', context)
 
 def register(request):
     if request.method == 'POST':
+        # username = request.POST["username"]
+        # email = request.POST["email"]
+        # first_name = request.POST["first_name"]
+        # last_name = request.POST["last_name"]
+        # phone_no = request.POST["phone_no"]
+        # password = request.POST["password"]
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
@@ -418,9 +414,10 @@ def log_in(request):
             return redirect('log_in')
     else:
         return render(request, 'log_in.html')
+    
 def log_out(request):
     logout(request)
-    return redirect('log_in')
+    return redirect('home')
 
 def all_users(request):
     # This is equivalent to JOIN operator in SQL
@@ -457,4 +454,62 @@ def search_buses(request):
         return redirect('flights_informations')
     
     return render(request, 'search_flights.html')
+
+def search_buses(request):
+    if request.method == 'POST':
+        departure_city = request.POST.get('departure_city')
+        destination_city = request.POST.get('destination_city')
+        departure_date = request.POST.get('departure_date', '')
+        bus_service = request.POST.get('bus_service')
+        # Store the search parameters in the session
+        request.session['bus_search_params'] = {
+            'departure_city': departure_city,
+            'destination_city': destination_city,
+            'departure_date': departure_date,
+            'bus_service': bus_service,
+        }
+
+        # Redirect to the flights_informations view
+        return redirect('buses_informations')
     
+    return render(request, 'search_buses.html')
+
+def buses_informations(request):
+    # Retrieve search parameters from the session
+    bus_search_params = request.session.get('bus_search_params', {})
+    departure_city = bus_search_params.get('departure_city','')
+    departure_city = departure_city.capitalize()
+    destination_city = bus_search_params.get('destination_city', '')
+    destination_city = destination_city.capitalize()
+    departure_date = bus_search_params.get('departure_date', '')
+    bus_service = bus_search_params.get('bus_service', '')
+    bus_service = bus_service.upper()
+
+    # Fetch buses based on the search parameters
+    get_query = f" SELECT * FROM hotel_app1_buscompany f1 JOIN hotel_app1_bus f2 ON f1.company_id = f2.company_id WHERE f2.departure_city = '{departure_city}' AND f2.destination_city = '{destination_city}' AND f2.departure_date = '{departure_date}' AND f1.company_name = '{bus_service}'"
+    buses = BusCompany.objects.raw(get_query)
+    count = len(list(buses))
+
+    context = {
+         'departure_city': departure_city,
+         'destination_city': destination_city,
+         'departure_date': departure_date,
+         'bus_service': bus_service.lower(),
+         'buses' : buses,
+         'count': count
+     }
+
+    return render(request, 'buses_informations.html', context)
+
+def bus_details(request, id):
+    req_bus = BusCompany.objects.filter(company_id = id)
+    print(req_bus)
+    context = {
+        'req_bus': req_bus
+    }
+    return render(request, 'bus_details.html', context)
+
+def bus_seat_selection(request, id):
+    
+    return render(request, 'bus_seat_selection.html')
+

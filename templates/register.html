@@ -1,27 +1,43 @@
-{% extends "templates/base.html" %}
+{% load static %}
 {% block body %}
 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'payment.css' %}">
+    <title>Sign Up</title>
+</head>
+
+<body>
+    
 {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <strong>{{message}}</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
-{% endif %}
-
-<h1 class = "text-center mt-4">Create a User</h1>
-<br>
-<div class="container">
-    
-
-    <form action="" method = 'POST'>
-        {% csrf_token %}
-        {{form.as_p}}
-        <br>
-        <br>
-        <input class = "btn btn-dark" type="submit" name = "submit" value = "Register">
-    </form>
-    
+{% for message in messages %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <strong>{{message}}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
+{% endfor %}
+{% endif %}
+    <div class="main-container">
+        <div class="container">
+            <div class="heading">
+                <h1>Registration</h1>
+            </div>
+            <form class="form-grid" method="POST">
+                {% csrf_token %}
+                {{form.as_p}}
+                <button type="submit" class="form-input-submit col-span-2">Register</button>
+                <div class="to-login-page col-span-2">
+                    <p>Already have an account? Click here to <a href="{% url 'log_in' %}">Log In</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
 {% endblock body %}

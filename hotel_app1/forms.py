@@ -63,7 +63,6 @@ class PaymentForm(forms.ModelForm):
             'bank_name': forms.TextInput(attrs={'class': 'form-control'}),
             'cvc': forms.NumberInput(attrs={'class': 'form-control'}),
             'expiry_date': forms.DateInput(attrs={'class': 'form-control'}),
-            
         }
 
 

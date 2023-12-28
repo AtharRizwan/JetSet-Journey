@@ -1,7 +1,18 @@
+{% load static %}
+{% block body %}
 
-{% extends "templates/base.html" %}
-{% block body%}
-{% if messages %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'payment.css' %}">
+    <title>Login</title>
+</head>
+<body>
+  {% if messages %}
     {% for message in messages %}
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <strong>{{message}}</strong>
@@ -9,23 +20,31 @@
     </div>
     {% endfor %}
 {% endif %}
-<div class="container my-4">
-    <h1>Log In to your account</h1>
-    <br>
-    <form method="POST" action = "{% url 'log_in' %}">
-        {% csrf_token %}
-            <div class="mb-3">
-              <label for="exampleInputEmail1" class="form-label">Username</label>
-              <input type="text" class="form-control" name="username" aria-describedby="emailHelp">
+    <div class="main-container">
+        <div class="container">
+            <div class="heading">
+                <h1>Login</h1>
             </div>
-            <div class="mb-3">
-              <label for="exampleInputPassword1" class="form-label">Password</label>
-              <input type="password" class="form-control" name="password">
-            </div>
-            
-            <button type="submit" class="btn btn-primary">Log In</button>
-    </form>
-</div>
+            <form class="form-grid" method="POST" action="{% url 'log_in' %}">
+              {% csrf_token %}
+                <div class="form-input-container">
+                    <label for="email" class="form-input-label">Username</label>
+                    <input type="input" id="email" name="username" class="form-input" placeholder="Enter your Username" autocomplete="off">
+                </div>
+                <div class="form-input-container">
+                    <label for="password" class="form-input-label">Password</label>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="Enter your Password"
+                        minlength="6" autocomplete="off">
+                </div>
+                <button type="submit" class="form-input-submit col-span-2" value="Register">Log In</button>
+                <div class="to-signup-page col-span-2">
+                    <p>Don't have an account? Click here to <a href="{% url 'register' %}">Sign Up</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
 
+</html>
 
 {% endblock body %}
