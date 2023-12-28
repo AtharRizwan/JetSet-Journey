@@ -14,6 +14,7 @@ import json
 from collections import defaultdict
 from django.contrib.gis.geoip2 import GeoIP2
 from datetime import datetime
+import validators
 
 # Create your views here.
 def base(request):
@@ -72,22 +73,25 @@ def flights_informations(request):
     # Retrieve search parameters from the session
     flight_search_params = request.session.get('flight_search_params', {})
     departure_city = flight_search_params.get('departure_city','')
+    departure_city = departure_city.capitalize()
     destination_city = flight_search_params.get('destination_city', '')
+    destination_city = destination_city.capitalize()
     departure_date = flight_search_params.get('departure_date', '')
     airline_service = flight_search_params.get('airline_service', '')
+    airline_service = airline_service.upper()
 
     # Fetch flights based on the search parameters
-    get_query = f" SELECT * FROM hotel_app1_flight JOIN hotel_app1_airline USING (airline_id) WHERE departure_city = '{departure_city}' AND destination_city = '{destination_city}' AND departure_date = '{departure_date}' AND airline_name = '{airline_service}'"
-    flights = Hotel.objects.raw(get_query)
+    get_query = f" SELECT * FROM hotel_app1_airline f1 JOIN hotel_app1_flight f2 ON f1.airline_id = f2.airline_id WHERE f2.departure_city = '{departure_city}' AND f2.destination_city = '{destination_city}' AND f2.departure_date = '{departure_date}' AND f1.airline_name = '{airline_service}'"
+    flights = Airline.objects.raw(get_query)
     count = len(list(flights))
 
     context = {
          'departure_city': departure_city,
          'destination_city': destination_city,
          'departure_date': departure_date,
-         'airline_service': airline_service,
+         'airline_service': airline_service.lower(),
          'flights' : flights,
-         'count' : count,
+         'count': count
      }
 
     return render(request, 'flights_informations.html', context)
@@ -99,6 +103,11 @@ def flight_details(request, id):
         'req_flight': req_flight
     }
     return render(request, 'flight_details.html', context)
+
+def plane_seat_selection(request, id):
+
+    return render(request, 'plane_seat_selection.html')
+
 
 # Function to get current IP Address
 def ip_addr(request):
@@ -163,6 +172,7 @@ def searched_hotels(request):
     # Retrieve search parameters from the session
     search_params = request.session.get('search_params', {})
     city_country = search_params.get('city_country','')
+    city_country = city_country.capitalize()
     check_in_date = search_params.get('check_in_date', '')
     check_out_date = search_params.get('check_out_date', '')
 
@@ -224,58 +234,10 @@ def booking(request, id):
     get_query = f" SELECT * FROM hotel_app1_suites"
     suites = Suites.objects.raw(get_query)
 
-    req_hotel = Hotel.objects.filter(hotelid=id).first()
-    # Getting data from the session
-    search_params = request.session.get('search_params', {})
-    check_in_date = search_params.get('check_in_date', '')
-    check_out_date = search_params.get('check_out_date', '')
-    # Convert the strings to datetime objects
-    check_in_date = datetime.strptime(check_in_date, "%Y-%m-%d")
-    check_out_date = datetime.strptime(check_out_date, "%Y-%m-%d")
-    no_of_days = (check_out_date - check_in_date).days
-
-    if request.method == 'POST':
-        form = HotelBookingForm(request.POST)
-        if form.is_valid():
-            # Store relevant data in session
-
-            room_preference = form.cleaned_data['room_preference']
-            print(room_preference)
-            if(room_preference == "Standard"):
-                   payment_price = req_hotel.price_per_night * no_of_days
-            elif(room_preference == "Deluxe"):
-                    payment_price = (req_hotel.price_per_night * 1.25) * no_of_days
-            else:
-                    payment_price = (req_hotel.price_per_night * 1.50) * no_of_days
-            request.session['booking_data'] = {
-                'user': request.user.id,
-                'hotel': req_hotel.hotelid,
-                'no_of_days': no_of_days,
-                'room_preference': room_preference,
-                'payment_price': payment_price,
-                'first_name': form.cleaned_data['first_name'],
-                'last_name': form.cleaned_data['last_name'],
-                'address': form.cleaned_data['address'],
-                'city': form.cleaned_data['city'],
-                'state': form.cleaned_data['state'],
-                'zip_code': form.cleaned_data['zip_code'],
-                'phone': form.cleaned_data['phone'],
-                'email': form.cleaned_data['email'],
-                'special_requests': form.cleaned_data['special_requests'],
-            }
-            
-            messages.success(request, "Form Validated Successfully")
-            return redirect('payment')
-        else:
-            print(form.errors)
-    else:
-        form = HotelBookingForm()
-
     context = {
-        'form': form,
-        'req_hotel': req_hotel,
         'suites' : suites
     }
+    request.session['hotel_booked'] = id
 
     return render(request, 'booking.html', context)
 
@@ -300,59 +262,63 @@ def hotel_summary(request, id):
         'no_of_days': no_of_days,
         'total_cost': suite[0].price_per_night * no_of_days,
     }
+    request.session['suite'] = id
+    request.session['total_cost'] = suite[0].price_per_night * no_of_days
 
     return render(request, 'hotel_summary.html', context)
 
 def payment(request):
     # Retrieve data from session
-    booking_data = request.session.get('booking_data', {})
+    total_cost = request.session.get('total_cost', '')
+    suite = request.session.get('suite', '')
+    hotel_booked = request.session.get('hotel_booked', '')
 
     if request.method == 'POST':
-        form = PaymentForm(request.POST)
-        if form.is_valid():
-            # Save the PaymentForm instance
-            payment_instance = form.save(commit=False)
+        # Check card validity
+        card_no = request.POST.get('card_no', '')
+        cvv = request.POST.get('cvv', '')
+        expiry = request.POST.get('expiry', '')
+    #    if validators.credit_card(card_no):
+    #         # Save the PaymentForm instance
+    #         payment_instance = form.save(commit=False)
             
-            # Ensure that user_id is set for the CreditCard instance
-            payment_instance.user_id = booking_data.get('user', '')
-            payment_instance.save()
+    #         # Ensure that user_id is set for the CreditCard instance
+    #         payment_instance.user_id = booking_data.get('user', '')
+    #         payment_instance.save()
 
-            # Create and save HotelBooking instance
-            hotel_booking_instance = HotelBooking.objects.create(
-                user_id=booking_data.get('user', ''),
-                hotel_id=booking_data.get('hotel', ''),
-                no_of_days=booking_data.get('no_of_days', ''),
-                payment_price=booking_data.get('payment_price', ''),
-                first_name=booking_data.get('first_name', ''),
-                last_name=booking_data.get('last_name', ''),
-                address=booking_data.get('address', ''),
-                city=booking_data.get('city', ''),
-                state=booking_data.get('state', ''),
-                zip_code=booking_data.get('zip_code', ''),
-                phone=booking_data.get('phone', ''),
-                email=booking_data.get('email', ''),
-                room_preference=booking_data.get('room_preference', ''),
-                special_requests=booking_data.get('special_requests', ''),
-            )
+    #         # Create and save HotelBooking instance
+    #         hotel_booking_instance = HotelBooking.objects.create(
+    #             user_id=booking_data.get('user', ''),
+    #             hotel_id=booking_data.get('hotel', ''),
+    #             no_of_days=booking_data.get('no_of_days', ''),
+    #             payment_price=booking_data.get('payment_price', ''),
+    #             first_name=booking_data.get('first_name', ''),
+    #             last_name=booking_data.get('last_name', ''),
+    #             address=booking_data.get('address', ''),
+    #             city=booking_data.get('city', ''),
+    #             state=booking_data.get('state', ''),
+    #             zip_code=booking_data.get('zip_code', ''),
+    #             phone=booking_data.get('phone', ''),
+    #             email=booking_data.get('email', ''),
+    #             room_preference=booking_data.get('room_preference', ''),
+    #             special_requests=booking_data.get('special_requests', ''),
+    #         )
 
-            # Clear session data after successful processing
-            del request.session['booking_data']
+    #         # Clear session data after successful processing
+    #         del request.session['booking_data']
 
-            # Continue with the rest of your payment processing logic
-            messages.success(request, "Payment successful!")
-            return redirect('payment')
-        else:
-            messages.error(request, "Payment form is invalid. Please check the entered information.")
-    else:
-        form = PaymentForm()
+    #         # Continue with the rest of your payment processing logic
+    #         messages.success(request, "Payment successful!")
+    #         return redirect('payment')
+    #     else:
+    #         messages.error(request, "Payment form is invalid. Please check the entered information.")
+    # else:
+    #     form = PaymentForm()
 
-    context = {
-        'form': form,
-    }
-    return render(request, 'payment.html', context)
-
-
-
+    # context = {
+    #     'form': form,
+    # }
+    return render(request, 'payment.html')
 
 def register(request):
     if request.method == 'POST':
@@ -492,34 +458,3 @@ def search_buses(request):
     
     return render(request, 'search_flights.html')
     
-def flights_informations(request):
-    # Retrieve search parameters from the session
-    flight_search_params = request.session.get('flight_search_params', {})
-    departure_city = flight_search_params.get('departure_city','')
-    destination_city = flight_search_params.get('destination_city', '')
-    departure_date = flight_search_params.get('departure_date', '')
-    airline_service = flight_search_params.get('airline_service', '')
-
-    # Fetch flights based on the search parameters
-    get_query = f" SELECT * FROM hotel_app1_flight JOIN hotel_app1_airline USING (airline_id) WHERE departure_city = '{departure_city}' AND destination_city = '{destination_city}' AND departure_date = '{departure_date}' AND airline_name = '{airline_service}'"
-    flights = Hotel.objects.raw(get_query)
-    count = len(list(flights))
-
-    context = {
-         'departure_city': departure_city,
-         'destination_city': destination_city,
-         'departure_date': departure_date,
-         'airline_service': airline_service,
-         'flights' : flights,
-         'count' : count,
-     }
-
-    return render(request, 'flights_informations.html', context)
-
-def flight_details(request, id):
-    req_flight = Hotel.objects.filter(hotelid = id)
-    print(req_flight)
-    context = {
-        'req_flight': req_flight
-    }
-    return render(request, 'flight_details.html', context)
