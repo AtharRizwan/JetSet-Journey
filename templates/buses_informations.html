@@ -33,9 +33,10 @@
                   </ul>
                 </div>
                 {% if user.is_authenticated %}
-                <a class="pt-4" href="{% url 'log_out' %}">
-                  Log Out
-                </a>
+                <div class="pt-4 flex gap-6">
+                  <a href="{% url 'my_bookings' %}">My Bookings</a>
+                  <a href="{% url 'log_out' %}">Log Out</a>
+                </div>
                 {% else %}
                 <a class="pt-4" href="{% url 'log_in' %}">
                   Log In
@@ -43,6 +44,7 @@
                 {% endif %}
               </nav>
         </header>
+        {% include "_messages.html" %}
         <div class="flex text-4xl justify-center items-center h-56 text-white font-extrabold">
             <h1 class="">
                 Travel the World with Jet-Set Journey
@@ -102,149 +104,47 @@
                 </div> -->
 
                 <div class="overflow-x-auto flex w-3/4 py-4">
+                    {% if count <= 0 %}
+                    <h1 class="text-center p-10 font-bold text-4xl">There are no buses. Please change your fields</h1>
+                    {% else %}
+                    {% for bus in buses %}
                     <div class="bg-white border border-gray-200 rounded-lg shadow mx-1 min-w-self">
-                        <img class="rounded-t-lg h-48 w-full" src="{% static 'bus-road-master.jpeg' %}" alt="" />
+                        {% with slug=bus.company.company_name|slugify %}
+                        <img class="rounded-t-lg h-48 w-full" src="{% static 'bus-'|add:slug|add:'.jpeg' %}" alt="{{ bus.company.company_name }}" />
+                        {% endwith %}
                         <div class="p-5">
                             <div>
                                 <h5 class="text-2xl min-h-self font-bold tracking-tight text-gray-900">
-                                    Road Master
+                                    {{ bus.company.company_name }}
                                 </h5>
                             </div>
                             <div class="font-normal text-gray-700">
-                                <h5><span class="font-bold">Departure City: </span>Lahore</h5>
-                                <h5><span class="font-bold">Destination City: </span>Islamabad</h5>
-                                <h5><span class="font-bold">Departure Time: </span>13:00</h5>
-                                <h5><span class="font-bold">Arrvial Time: </span>15:00</h5>
-                                <h5><span class="font-bold">Travel Duration: </span>2 hours</h5>
+                                <h5><span class="font-bold">Departure City: </span>{{ bus.departure_city }}</h5>
+                                <h5><span class="font-bold">Destination City: </span>{{ bus.destination_city }}</h5>
+                                <h5><span class="font-bold">Departure Time: </span>{{ bus.departure_time|time:"H:i" }}</h5>
                             </div>
                             <div class="flex justify-between">
-                                <a href="{% url 'bus_seat_selection' %}">
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'bus_seat_selection' id=bus.busid %}">
                                 <button class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center
                                     text-white bg-blue-700 rounded-lg hover:bg-blue-800">
                                     Select
                                 </button>
                                 </a>
+                            {% else %}
+                                <p class="text-red-500">You must be logged
+                                    <br> in to book a bus</p>
+                            {% endif %}
                                 <button
                                     class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
-                                    PKR 1800
+                                    Rs/- {{ bus.price }}
                                 </button>
                             </div>
                         </div>
                     </div>
-
-                <!-- <div class="overflow-x-auto flex w-3/4 py-4 flex-col ">
-                    <div class="bg-black bg-opacity-30 w-full rounded-xl h-s-9">
-                        <div class="grid grid-rows-5 grid-flow-col gap-2 text-center px-3 py-3 w-full h-full">
-                            <div class="seat">1</div>
-                            <div class="seat">2</div>
-                            <div class="bg-transparent rounded-full"></div>
-                            <div class="seat">3</div>
-                            <div class="seat">4</div>
-                            <div class="seat">5</div>
-                            <div class="seat">6</div>
-                            <div class="bg-transparent rounded-full"></div>
-                            <div class="seat">7</div>
-                            <div class="seat">8</div>
-                            <div class="seat">9</div>
-                            <div class="seat">10</div>
-                            <div class="bg-transparent rounded-full"></div>
-                            <div class="seat">11</div>
-                            <div class="seat">12</div>
-                            <div class="seat">13</div>
-                            <div class="seat">14</div>
-                            <div class="bg-transparent rounded-full"></div>
-                            <div class="seat">15</div>
-                            <div class="seat">16</div>
-                            <div class="seat">17</div>
-                            <div class="seat">18</div>
-                            <div class="bg-transparent rounded-full"></div>
-                            <div class="seat">19</div>
-                            <div class="seat">20</div>
-                        </div>
-                    </div>
-                    <button class="h-s-1 bg-red-700 mt-2 rounded-lg hover:bg-red-600 -mb-5 text-lg font-medium text-white">
-                        Next
-                    </button>
-                </div> -->
-
-                <!-- <div class="overflow-x-auto flex w-3/4 py-4">
-                    <div class="flex justify-start flex-col w-fit">
-                        <div class=" -mt-6 p-2 font-bold text-2xl font-serif align-middle">
-                            <p>Summary</p>
-                        </div>
-                        <div class="bg-white border border-gray-200 rounded-lg shadow mx-1 min-w-self">
-                            <img class="rounded-t-lg h-48 w-full" src="{% static 'bus-road-master.jpeg' %}" alt="Plane Pic" />
-                            <div class="p-5">
-                                <div>
-                                    <h5 class="text-2xl min-h-self font-bold tracking-tight text-gray-900">
-                                        Road Master
-                                    </h5>
-                                </div>
-                                <div class="font-normal text-gray-700">
-                                    <h5><span class="font-bold">Departure City: </span>Lahore</h5>
-                                    <h5><span class="font-bold">Destination City: </span>Islamabad</h5>
-                                    <h5><span class="font-bold">Departure Time: </span>13:00</h5>
-                                    <h5><span class="font-bold">Arrvial Time: </span>15:00</h5>
-                                    <h5><span class="font-bold">Travel Duration: </span>2 hours</h5>
-                                </div>
-                                <div class="flex justify-between">
-
-                                    <button
-                                        class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
-                                        PKR 2000
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex justify-start flex-col w-fit pl-4  ">
-                        <div class=" -mt-6 p-2 font-bold text-2xl font-serif align-middle">
-                            <p>Total Cost</p>
-                        </div>
-                        <div class="flex flex-row overflow-x-auto py-4 ">
-                            <div
-                                class="cursor-pointer rounded-xl bg-slate-50 shadow-lg border-gray-200 hover:shadow-xl ml-2">
-                                <a href="#">
-                                    <div class="mt-1 p-2">
-                                        <h2 class="text-slate-800 font-serif font-bold text-lg">Road Master</h2> 
-                                        <div class="text-xs p-1 border-t-2 border-b-2 border-gray-200">
-                                            <div>
-                                                <ul class="flex flex-row items-start justify-center">
-                                                    <li>Premium Bus Service</li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        <div class="mt-3 flex items-end justify-between">
-                                            <p>
-                                                <span class="text-sm font-bold text-orange-500">Rs/- 2000 per Seat</span>
-                                                <span class="text-sm text-slate-400">/night</span>
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <h2 class="text-sm font-serif p-1 border-t-2 border-b-2 border-gray-200">Seats Booked:</h2>
-                                            <h2 class="text-sm font-serif p-1 border-t-0 border-b-2 border-gray-200">3, 4, 5</h2>
-                                            <h2 class="text-sm font-serif p-1 border-t-0 border-b-2 border-gray-200">No. of Seats: 3</h2>
-                                        </div>
-                                        <div>
-                                        <h2 class="text-slate-800 font-serif font-bold">Total Cost</h2>
-                                        <div class="mt-0 flex items-end justify-between">
-                                            <p>
-                                                <span class="text-lg font-bold font-mono text-orange-500">Rs/- 6000</span>
-                                            </p>
-                                        </div>
-                                        </div>
-                                    </div>
-                                    <a href="{% url 'payment' %}">
-                                        <button class="bg-slate-500 text-white w-full py-2 rounded-b-xl hover:bg-slate-600">
-                                            Proceed to Checkout
-                                        </button>
-                                    </a>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div> -->
+                    {% endfor %}
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

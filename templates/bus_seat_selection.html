@@ -33,9 +33,10 @@
                   </ul>
                 </div>
                 {% if user.is_authenticated %}
-                <a class="pt-4" href="{% url 'log_out' %}">
-                  Log Out
-                </a>
+                <div class="pt-4 flex gap-6">
+                  <a href="{% url 'my_bookings' %}">My Bookings</a>
+                  <a href="{% url 'log_out' %}">Log Out</a>
+                </div>
                 {% else %}
                 <a class="pt-4" href="{% url 'log_in' %}">
                   Log In
@@ -43,6 +44,7 @@
                 {% endif %}
               </nav>
         </header>
+        {% include "_messages.html" %}
         <div class="flex text-4xl justify-center items-center h-56 text-white font-extrabold">
             <h1 class="">
                 Travel the World with Jet-Set Journey
@@ -186,38 +188,7 @@
                 </div> -->
 
                 <div class="overflow-x-auto flex w-3/4 py-4 flex-col ">
-                    <div class="bg-black bg-opacity-30 w-full rounded-xl h-s-9">
-                        <div class="grid grid-rows-5 grid-flow-col gap-2 text-center px-3 py-3 w-full h-full">
-                            <div class="seat">1</div>
-                            <div class="seat">2</div>
-                            <div class="bg-transparent rounded-full"></div>
-                            <div class="seat">3</div>
-                            <div class="seat">4</div>
-                            <div class="seat">5</div>
-                            <div class="seat">6</div>
-                            <div class="bg-transparent rounded-full"></div>
-                            <div class="seat">7</div>
-                            <div class="seat">8</div>
-                            <div class="seat">9</div>
-                            <div class="seat">10</div>
-                            <div class="bg-transparent rounded-full"></div>
-                            <div class="seat">11</div>
-                            <div class="seat">12</div>
-                            <div class="seat">13</div>
-                            <div class="seat">14</div>
-                            <div class="bg-transparent rounded-full"></div>
-                            <div class="seat">15</div>
-                            <div class="seat">16</div>
-                            <div class="seat">17</div>
-                            <div class="seat">18</div>
-                            <div class="bg-transparent rounded-full"></div>
-                            <div class="seat">19</div>
-                            <div class="seat">20</div>
-                        </div>
-                    </div>
-                    <button class="h-s-1 bg-red-700 mt-2 rounded-lg hover:bg-red-600 -mb-5 text-lg font-medium text-white">
-                        Next
-                    </button>
+                    {% include "_seat_grid.html" %}
                 </div>
 
                 <!-- <div class="overflow-x-auto flex w-3/4 py-4">
