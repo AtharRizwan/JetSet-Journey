@@ -1,22 +1,68 @@
 {% extends "base.html" %}
 {% block body %}
-<h1 class="text-center mt-4">All Hotel Bookings</h1>
 <div class="container">
+    <h1 class="text-center mt-4">All Bookings</h1>
+
+    <h2 class="mt-4">Hotels</h2>
     <table class="table">
         <thead>
-            <tr><th>User</th><th>Hotel</th><th>Suite</th><th>Nights</th><th>Paid (Rs)</th></tr>
+            <tr><th>User</th><th>Hotel</th><th>Suite</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Paid (Rs)</th></tr>
         </thead>
         <tbody>
-        {% for booking in all_bookings_info %}
+        {% for booking in hotel_bookings %}
             <tr>
                 <td>{{ booking.user.username }}</td>
                 <td>{{ booking.hotel.name }}</td>
                 <td>{{ booking.suite_id.name }}</td>
+                <td>{{ booking.check_in|default:"-" }}</td>
+                <td>{{ booking.check_out|default:"-" }}</td>
                 <td>{{ booking.no_of_days }}</td>
                 <td>{{ booking.payment_price }}</td>
             </tr>
         {% empty %}
-            <tr><td colspan="5">No bookings yet.</td></tr>
+            <tr><td colspan="7">No hotel bookings yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 class="mt-4">Flights</h2>
+    <table class="table">
+        <thead>
+            <tr><th>User</th><th>Airline</th><th>Route</th><th>Departure</th><th>Seats</th><th>Paid (Rs)</th></tr>
+        </thead>
+        <tbody>
+        {% for booking in flight_bookings %}
+            <tr>
+                <td>{{ booking.user.username }}</td>
+                <td>{{ booking.flight.airline.airline_name }}</td>
+                <td>{{ booking.flight }}</td>
+                <td>{{ booking.flight.departure_date }} {{ booking.flight.departure_time|time:"H:i" }}</td>
+                <td>{{ booking.flightbookedseats_set.all|join:", " }}</td>
+                <td>{{ booking.payment_price }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6">No flight bookings yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 class="mt-4">Buses</h2>
+    <table class="table">
+        <thead>
+            <tr><th>User</th><th>Company</th><th>Route</th><th>Departure</th><th>Seats</th><th>Paid (Rs)</th></tr>
+        </thead>
+        <tbody>
+        {% for booking in bus_bookings %}
+            <tr>
+                <td>{{ booking.user.username }}</td>
+                <td>{{ booking.bus.company.company_name }}</td>
+                <td>{{ booking.bus }}</td>
+                <td>{{ booking.bus.departure_date }} {{ booking.bus.departure_time|time:"H:i" }}</td>
+                <td>{{ booking.busbookedseats_set.all|join:", " }}</td>
+                <td>{{ booking.payment_price }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6">No bus bookings yet.</td></tr>
         {% endfor %}
         </tbody>
     </table>

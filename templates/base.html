@@ -14,10 +14,7 @@
   
     <nav class="navbar navbar-expand bg-dark border-bottom border-body" data-bs-theme="dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <img src="/docs/5.3/assets/brand/bootstrap-logo.svg" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
-                Bootstrap
-              </a>
+            <a class="navbar-brand" href="{% url 'home' %}">Jet-Set Journey</a>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -30,17 +27,24 @@
                 <a class="nav-link" aria-current="page" href="{% url 'search' %}">Search Hotel</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#">Popular Destinations</a>
+                <a class="nav-link" href="{% url 'search_flights' %}">Flights</a>
               </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'search_buses' %}">Buses</a>
+              </li>
+              {% if user.is_authenticated %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'my_bookings' %}">My Bookings</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'log_out' %}">Log Out</a>
+              </li>
+              {% else %}
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'register' %}">Register</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'log_in' %}">Log In</a>
-              </li>
-              {% if user.is_authenticated %}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'log_out' %}">Log Out</a>
               </li>
               {% endif %}
               

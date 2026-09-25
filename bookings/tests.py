@@ -60,6 +60,38 @@ class HotelFlowTests(TestCase):
         booking = HotelBooking.objects.get()
         self.assertEqual((booking.user, booking.hotel, booking.suite_id), (self.user, self.hotel, self.suite))
         self.assertEqual((booking.no_of_days, booking.payment_price), (3, 21000))
+        self.assertEqual((booking.check_in, booking.check_out), (self.check_in, self.check_in + timedelta(days=3)))
+        self.assertNotIn('pending_booking', self.client.session)
+
+    def test_suite_cannot_be_booked_twice_for_overlapping_dates(self, _weather):
+        other = User.objects.create_user('bob', password='pass12345')
+        other_client = Client()
+        other_client.force_login(other)
+        for client in (self.client, other_client):
+            client.force_login(self.user if client is self.client else other)
+            client.post(reverse('search'), {
+                'city_country': 'islamabad',
+                'check_in_date': self.check_in.isoformat(),
+                'check_out_date': (self.check_in + timedelta(days=3)).isoformat(),
+            })
+            client.get(reverse('booking', args=[self.hotel.hotelid]))
+            client.get(reverse('hotel_summary', args=[self.suite.suiteid]))
+
+        self.client.post(reverse('payment'), VALID_CARD)
+        response = other_client.post(reverse('payment'), VALID_CARD)
+        self.assertRedirects(response, reverse('booking', args=[self.hotel.hotelid]))
+        self.assertEqual(HotelBooking.objects.count(), 1)
+
+        response = other_client.get(reverse('hotel_summary', args=[self.suite.suiteid]))
+        self.assertRedirects(response, reverse('booking', args=[self.hotel.hotelid]))
+
+    def test_closed_dates_block_booking(self, _weather):
+        RoomAvailability.objects.create(name=self.hotel, date=self.check_in + timedelta(days=1), isAvailable=False)
+        self.client.force_login(self.user)
+        self.search()
+        self.client.get(reverse('booking', args=[self.hotel.hotelid]))
+        response = self.client.get(reverse('hotel_summary', args=[self.suite.suiteid]))
+        self.assertRedirects(response, reverse('booking', args=[self.hotel.hotelid]))
         self.assertNotIn('pending_booking', self.client.session)
 
     def test_invalid_card_creates_no_booking(self, _weather):
@@ -153,6 +185,22 @@ class TripFlowTests(TestCase):
         self.assertRedirects(response, reverse('plane_seat_selection', args=[self.flight.pk]))
         self.assertEqual(FlightBooking.objects.count(), 1)
 
+    def test_past_flight_search_is_rejected(self):
+        self.client.post(reverse('search_flights'), {
+            'departure_city': 'Lahore', 'destination_city': 'Karachi',
+            'departure_date': (date.today() - timedelta(days=1)).isoformat(),
+        })
+        response = self.client.get(reverse('flights_informations'))
+        self.assertRedirects(response, reverse('search_flights'))
+
+    def test_departed_bus_cannot_be_booked(self):
+        self.bus.departure_date = date.today() - timedelta(days=1)
+        self.bus.save()
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('bus_seat_selection', args=[self.bus.pk]), {'seats': ['1']})
+        self.assertRedirects(response, reverse('search_buses'))
+        self.assertNotIn('pending_booking', self.client.session)
+
     def test_out_of_range_seat_is_rejected(self):
         self.client.force_login(self.user)
         response = self.client.post(reverse('bus_seat_selection', args=[self.bus.pk]), {'seats': ['21']})
@@ -170,6 +218,12 @@ class AuthTests(TestCase):
         self.client.force_login(User.objects.create_user('alice', password='pass12345'))
         for url in (reverse('all_users'), reverse('all_bookings'), reverse('add_hotel')):
             self.assertEqual(self.client.get(url).status_code, 302)
+
+    def test_staff_all_bookings_lists_every_kind(self):
+        self.client.force_login(User.objects.create_user('admin', password='pass12345', is_staff=True))
+        response = self.client.get(reverse('all_bookings'))
+        for key in ('hotel_bookings', 'flight_bookings', 'bus_bookings'):
+            self.assertIn(key, response.context)
 
     def test_staff_can_add_hotel(self):
         self.client.force_login(User.objects.create_user('admin', password='pass12345', is_staff=True))
