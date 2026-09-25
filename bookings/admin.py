@@ -1,15 +1,13 @@
 from django.contrib import admin
 
-# Register your models here.
-from .models import Hotel, RoomAvailability, User_info, Airline, Flight, FlightBooking, FlightBookedSeats, Suites, HotelServices, CreditCard
+from .models import (
+    Airline, Bus, BusBookedSeats, BusBooking, BusCompany, Flight, FlightBookedSeats, FlightBooking,
+    Hotel, HotelBooking, HotelServices, RoomAvailability, Suites, User_info,
+)
 
-admin.site.register(Hotel)
-admin.site.register(RoomAvailability)
-admin.site.register(User_info)
-admin.site.register(Airline)
-admin.site.register(Flight)
-admin.site.register(FlightBooking)
-admin.site.register(FlightBookedSeats)
-admin.site.register(Suites)
-admin.site.register(HotelServices)
-admin.site.register(CreditCard)
+for model in (
+    Hotel, RoomAvailability, User_info, Suites, HotelServices, HotelBooking,
+    Airline, Flight, FlightBooking, FlightBookedSeats,
+    BusCompany, Bus, BusBooking, BusBookedSeats,
+):
+    admin.site.register(model)

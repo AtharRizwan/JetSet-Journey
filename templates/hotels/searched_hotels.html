@@ -142,7 +142,7 @@
             <div class="flex justify-center items-center h-full">
                 <div class="grid grid-cols-3 gap-8 px-6 w-3/4">
                     <div class="relative group hover:scale-105 transition-all duration-300 cursor-point">
-                        <a href="">
+                        <a href="{% url 'search' %}">
                             <img src="{% static 'img/pc-hotel.jpeg' %}" alt="Image 1" class="w-full h-auto">
                             <div
                                 class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -154,7 +154,7 @@
                         </a>
                     </div>
                     <div class="relative group hover:scale-105 transition-all duration-300 cursor-point">
-                        <a href="">
+                        <a href="{% url 'search' %}">
                             <img src="{% static 'img/ramada-hotel.jpg' %}" alt="Image 1"
                                 class="w-full h-auto scale-110 mt-3 ">
                             <div
@@ -167,7 +167,7 @@
                         </a>
                     </div>
                     <div class="relative group hover:scale-105 transition-all duration-300 cursor-point">
-                        <a href="">
+                        <a href="{% url 'search' %}">
                             <img src="{% static 'img/serene-hotel.jpeg' %}" alt="Image 1" class="w-full h-auto">
                             <div
                                 class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -182,7 +182,7 @@
             </div>
         </div>
         <footer class="bg-black bg-opacity-70 text-slate-200 py-4 mt-5 flex justify-center items-center font-mono">
-            <a href="" class="cursor-pointer">Jet-Set Journey</a>
+            <a href="{% url 'home' %}" class="cursor-pointer">Jet-Set Journey</a>
         </footer>
 
 </body>

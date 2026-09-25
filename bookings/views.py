@@ -10,11 +10,12 @@ from django.contrib.auth.models import Group
 from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from .forms import CustomUserChangeForm, HotelForm, PaymentForm
-from .models import Hotel, HotelServices, Suites, User_info, HotelBooking
+from .models import Hotel, HotelServices, Suites, User_info, HotelBooking, RoomAvailability
 from .models import Flight, FlightBooking, FlightBookedSeats
 from .models import Bus, BusBooking, BusBookedSeats
 from .services import get_weather_data
@@ -31,6 +32,7 @@ TRIPS = {
         'seat_model': FlightBookedSeats,
         'seat_url': 'plane_seat_selection',
         'template': 'trips/plane_seat_selection.html',
+        'search_url': 'search_flights',
     },
     'bus': {
         'model': Bus,
@@ -40,6 +42,7 @@ TRIPS = {
         'seat_model': BusBookedSeats,
         'seat_url': 'bus_seat_selection',
         'template': 'trips/bus_seat_selection.html',
+        'search_url': 'search_buses',
     },
 }
 
@@ -92,6 +95,9 @@ def flights_informations(request):
     if departure_date is None:
         messages.error(request, "Please enter your flight search again.")
         return redirect('search_flights')
+    if departure_date < timezone.localdate():
+        messages.error(request, "Please choose a departure date that is today or later.")
+        return redirect('search_flights')
 
     departure_city = params.get('departure_city', '').strip()
     destination_city = params.get('destination_city', '').strip()
@@ -135,6 +141,9 @@ def buses_informations(request):
     if departure_date is None:
         messages.error(request, "Please enter your bus search again.")
         return redirect('search_buses')
+    if departure_date < timezone.localdate():
+        messages.error(request, "Please choose a departure date that is today or later.")
+        return redirect('search_buses')
 
     departure_city = params.get('departure_city', '').strip()
     destination_city = params.get('destination_city', '').strip()
@@ -162,6 +171,9 @@ def buses_informations(request):
 def seat_selection(request, kind, id):
     config = TRIPS[kind]
     trip = get_object_or_404(config['model'], pk=id)
+    if trip.departure_date < timezone.localdate():
+        messages.error(request, "This trip has already departed.")
+        return redirect(config['search_url'])
     taken = booked_seats(kind, trip)
 
     if request.method == 'POST':
@@ -239,15 +251,26 @@ def get_stay_dates(request):
     params = request.session.get('search_params') or {}
     check_in = parse_date(params.get('check_in_date', '') or '')
     check_out = parse_date(params.get('check_out_date', '') or '')
-    if check_in is None or check_out is None or check_out <= check_in:
+    if check_in is None or check_out is None or check_out <= check_in or check_in < timezone.localdate():
         return None
     return check_in, check_out
+
+
+def suite_unavailable(hotel_id, suite_id, check_in, check_out):
+    """True if the hotel is closed on any night of the stay or the suite is already booked for an overlapping stay."""
+    closed = RoomAvailability.objects.filter(
+        name__hotelid=hotel_id, date__gte=check_in, date__lt=check_out, isAvailable=False,
+    ).exists()
+    overlapping = HotelBooking.objects.filter(
+        hotel_id=hotel_id, suite_id_id=suite_id, check_in__lt=check_out, check_out__gt=check_in,
+    ).exists()
+    return closed or overlapping
 
 
 def searched_hotels(request):
     stay = get_stay_dates(request)
     if stay is None:
-        messages.error(request, "Please choose a check-out date after your check-in date.")
+        messages.error(request, "Please choose a check-in date from today onwards and a check-out date after it.")
         return redirect('search')
 
     city = request.session['search_params'].get('city_country', '').strip()
@@ -317,12 +340,18 @@ def hotel_summary(request, id):
         return redirect('search')
 
     hotel = get_object_or_404(Hotel, hotelid=hotel_id)
+    if suite_unavailable(hotel.hotelid, suite.suiteid, *stay):
+        messages.error(request, f"The {suite.name} at {hotel.name} is not available for those dates.")
+        return redirect('booking', id=hotel.hotelid)
+
     no_of_days = (stay[1] - stay[0]).days
     total_cost = suite.price_per_night * no_of_days
     request.session['pending_booking'] = {
         'type': 'hotel',
         'hotel_id': hotel.hotelid,
         'suite_id': suite.suiteid,
+        'check_in': stay[0].isoformat(),
+        'check_out': stay[1].isoformat(),
         'no_of_days': no_of_days,
         'total': total_cost,
     }
@@ -342,7 +371,7 @@ def describe_pending_booking(pending):
     if pending['type'] == 'hotel':
         hotel = get_object_or_404(Hotel, hotelid=pending['hotel_id'])
         suite = get_object_or_404(Suites, suiteid=pending['suite_id'])
-        return f"{suite.name} at {hotel.name} for {pending['no_of_days']} night(s)"
+        return f"{suite.name} at {hotel.name}, {pending['check_in']} to {pending['check_out']} ({pending['no_of_days']} night(s))"
 
     trip = get_object_or_404(TRIPS[pending['type']]['model'], pk=pending['trip_id'])
     seats = ', '.join(str(seat) for seat in pending['seats'])
@@ -360,13 +389,22 @@ def payment(request):
         form = PaymentForm(request.POST)
         if form.is_valid():
             if pending['type'] == 'hotel':
-                HotelBooking.objects.create(
-                    user=request.user,
-                    hotel_id=pending['hotel_id'],
-                    suite_id_id=pending['suite_id'],
-                    no_of_days=pending['no_of_days'],
-                    payment_price=pending['total'],
-                )
+                check_in, check_out = parse_date(pending['check_in']), parse_date(pending['check_out'])
+                with transaction.atomic():
+                    if suite_unavailable(pending['hotel_id'], pending['suite_id'], check_in, check_out):
+                        del request.session['pending_booking']
+                        messages.error(request, "Sorry, that suite was just booked for those dates. Please choose again.")
+                        return redirect('booking', id=pending['hotel_id'])
+
+                    HotelBooking.objects.create(
+                        user=request.user,
+                        hotel_id=pending['hotel_id'],
+                        suite_id_id=pending['suite_id'],
+                        check_in=check_in,
+                        check_out=check_out,
+                        no_of_days=pending['no_of_days'],
+                        payment_price=pending['total'],
+                    )
             else:
                 config = TRIPS[pending['type']]
                 trip = get_object_or_404(config['model'], pk=pending['trip_id'])
@@ -513,9 +551,12 @@ def all_users(request):
 
 @staff_member_required(login_url='log_in')
 def all_bookings(request):
-    all_bookings_info = HotelBooking.objects.select_related('hotel', 'user', 'suite_id').all()
     context = {
-        'all_bookings_info': all_bookings_info
+        'hotel_bookings': HotelBooking.objects.select_related('hotel', 'user', 'suite_id').order_by('-id'),
+        'flight_bookings': FlightBooking.objects.select_related('user', 'flight__airline')
+            .prefetch_related('flightbookedseats_set').order_by('-booking_id'),
+        'bus_bookings': BusBooking.objects.select_related('user', 'bus__company')
+            .prefetch_related('busbookedseats_set').order_by('-booking_id'),
     }
     return render(request, 'staff/all_bookings.html', context)
 

@@ -22,7 +22,7 @@
                 <div class="flex justify-between border-t border-gray-200 py-2">
                     <div>
                         <p class="font-bold">{{ booking.hotel.name }}, {{ booking.hotel.city }}</p>
-                        <p class="text-sm text-slate-600">{{ booking.suite_id.name }} &middot; {{ booking.no_of_days }} night{{ booking.no_of_days|pluralize }}</p>
+                        <p class="text-sm text-slate-600">{{ booking.suite_id.name }} &middot; {% if booking.check_in %}{{ booking.check_in }} to {{ booking.check_out }} &middot; {% endif %}{{ booking.no_of_days }} night{{ booking.no_of_days|pluralize }}</p>
                     </div>
                     <span class="font-mono font-bold text-orange-500">Rs/- {{ booking.payment_price }}</span>
                 </div>
