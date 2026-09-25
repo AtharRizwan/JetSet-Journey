@@ -26,6 +26,7 @@
                 <h1>Login</h1>
             </div>
             <form class="form-grid" method="POST" action="{% url 'log_in' %}">
+                <input type="hidden" name="next" value="{{ next }}">
               {% csrf_token %}
                 <div class="form-input-container">
                     <label for="email" class="form-input-label">Username</label>

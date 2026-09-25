@@ -33,9 +33,10 @@
                   </ul>
                 </div>
                 {% if user.is_authenticated %}
-                <a class="pt-4" href="{% url 'log_out' %}">
-                  Log Out
-                </a>
+                <div class="pt-4 flex gap-6">
+                  <a href="{% url 'my_bookings' %}">My Bookings</a>
+                  <a href="{% url 'log_out' %}">Log Out</a>
+                </div>
                 {% else %}
                 <a class="pt-4" href="{% url 'log_in' %}">
                   Log In
@@ -43,6 +44,7 @@
                 {% endif %}
               </nav>
         </header>
+        {% include "_messages.html" %}
         <div class="flex text-4xl justify-center items-center h-56 text-white font-extrabold">
             <h1 class="">
                 Travel the World with Jet-Set Journey
@@ -75,11 +77,11 @@
                     {% else %}
                     {% for flight in flights %}
                     <div class="bg-white border border-gray-200 rounded-lg shadow mx-1 min-w-self">
-                        <img class="rounded-t-lg h-48 w-full" src="{% static flight.airline_name|add:'.jpeg' %}" alt="" />
+                        <img class="rounded-t-lg h-48 w-full" src="{% static flight.airline.airline_name|lower|add:'.jpeg' %}" alt="" />
                         <div class="p-5">
                             <div>
                                 <h5 class="text-2xl min-h-self font-bold tracking-tight text-gray-900">
-                                    {{flight.airline_name}}
+                                    {{flight.airline.airline_name}}
                                 </h5>
                             </div>
                             <div class="font-normal text-gray-700">
@@ -89,7 +91,7 @@
                             </div>
                             <div class="flex justify-between">
                             {% if user.is_authenticated %}
-                            <a href="{% url 'plane_seat_selection' id=flight.airline_id %}">
+                            <a href="{% url 'plane_seat_selection' id=flight.flightid %}">
                                 <button class="inline-flex items-center mt-2 px-3 py-2 text font-medium text-center
                                     text-white bg-blue-700 rounded-lg hover:bg-blue-800">
                                     Select

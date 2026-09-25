@@ -38,9 +38,10 @@
           </ul>
         </div>
         {% if user.is_authenticated %}
-        <a class="pt-4" href="{% url 'log_out' %}">
-          Log Out
-        </a>
+        <div class="pt-4 flex gap-6">
+          <a href="{% url 'my_bookings' %}">My Bookings</a>
+          <a href="{% url 'log_out' %}">Log Out</a>
+        </div>
         {% else %}
         <a class="pt-4" href="{% url 'log_in' %}">
           Log In
@@ -48,6 +49,7 @@
         {% endif %}
       </nav>
     </header>
+    {% include "_messages.html" %}
     <div class="flex text-4xl justify-center items-center h-screen text-white font-extrabold">
       <h1 class="">
         Travel the World with Jet-Set Journey

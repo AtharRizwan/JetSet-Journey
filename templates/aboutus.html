@@ -32,9 +32,10 @@
                   </ul>
                 </div>
                 {% if user.is_authenticated %}
-                <a class="pt-4" href="{% url 'log_out' %}">
-                  Log Out
-                </a>
+                <div class="pt-4 flex gap-6">
+                  <a href="{% url 'my_bookings' %}">My Bookings</a>
+                  <a href="{% url 'log_out' %}">Log Out</a>
+                </div>
                 {% else %}
                 <a class="pt-4" href="{% url 'log_in' %}">
                   Log In
@@ -42,6 +43,7 @@
                 {% endif %}
               </nav>
         </header>
+        {% include "_messages.html" %}
         <section class="flex items-center xl:h-screen font-poppins ">
             <div class="justify-center flex-1 max-w-6xl py-4 mx-auto lg:py-6 md:px-6">
                 <div class="flex flex-wrap ">

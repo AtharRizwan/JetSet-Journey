@@ -24,6 +24,8 @@
         <div class="container">
             <div class="heading">
                 <h1>Payment</h1>
+                <p>{{ description }}</p>
+                <p><strong>Total: Rs/- {{ total }}</strong></p>
             </div>
             <form class="form-grid" method="POST">
                 {% csrf_token %}

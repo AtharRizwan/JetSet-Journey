@@ -23,12 +23,15 @@ STATICFILES_DIRS = [
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-7t1z(ox(2f^u)8wwdpdu391+-jey8(73sb72cu3%03901u)@ta'
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-7t1z(ox(2f^u)8wwdpdu391+-jey8(73sb72cu3%03901u)@ta',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -128,8 +131,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# settings.py
-
+LOGIN_URL = 'log_in'
 
 
 # Default primary key field type

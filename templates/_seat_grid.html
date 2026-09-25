@@ -1,0 +1,33 @@
+<style>
+    .seat-input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .seat-label { cursor: pointer; width: 100%; height: 100%; min-height: 2rem; }
+    .seat-input:checked + .seat-label { background-color: rgb(22, 163, 74); color: white; }
+    .seat-input:focus-visible + .seat-label { outline: 2px solid rgb(29, 78, 216); }
+    .seat-booked { background-color: rgb(100, 116, 139) !important; color: rgb(203, 213, 225); cursor: not-allowed; }
+</style>
+<form method="POST" class="w-full h-full flex flex-col">
+    {% csrf_token %}
+    <div class="bg-black bg-opacity-30 w-full rounded-xl flex-1">
+        <div class="grid grid-rows-5 grid-flow-col gap-2 text-center px-3 py-3 w-full h-full">
+            {% for cell in seat_cells %}
+                {% if cell is None %}
+                <div class="bg-transparent rounded-full"></div>
+                {% elif cell.booked %}
+                <div class="seat seat-booked" title="Seat {{ cell.number }} is booked">{{ cell.number }}</div>
+                {% else %}
+                <div class="relative">
+                    <input type="checkbox" name="seats" value="{{ cell.number }}" id="seat-{{ cell.number }}" class="seat-input">
+                    <label for="seat-{{ cell.number }}" class="seat seat-label">{{ cell.number }}</label>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <div class="flex justify-between items-center text-sm text-slate-600 mt-2">
+        <span>{{ operator }}: {{ trip.departure_city }} to {{ trip.destination_city }}, {{ trip.departure_date }} at {{ trip.departure_time|time:"H:i" }}</span>
+        <span>Rs/- {{ trip.price }} per seat</span>
+    </div>
+    <button type="submit" class="py-2 bg-red-700 mt-2 rounded-lg hover:bg-red-600 text-lg font-medium text-white">
+        Next
+    </button>
+</form>

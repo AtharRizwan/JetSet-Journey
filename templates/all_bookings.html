@@ -1,13 +1,24 @@
 {% extends "templates/base.html" %}
 {% block body %}
-<h1>This is admin block for bookings</h1>
-{% for booking in all_bookings_info %}
-    <p>{{booking.city}}</p>
-    <p>{{booking.state}}</p>
-    <p>{{booking.first_name}}</p>
-    <p>{{booking.last_name}}</p>
-    <p>{{booking.address}}</p>
-    <p>{{booking.room_preference}}</p>
-    <p>{{booking.hotel}}</p>
-{% endfor %}
+<h1 class="text-center mt-4">All Hotel Bookings</h1>
+<div class="container">
+    <table class="table">
+        <thead>
+            <tr><th>User</th><th>Hotel</th><th>Suite</th><th>Nights</th><th>Paid (Rs)</th></tr>
+        </thead>
+        <tbody>
+        {% for booking in all_bookings_info %}
+            <tr>
+                <td>{{ booking.user.username }}</td>
+                <td>{{ booking.hotel.name }}</td>
+                <td>{{ booking.suite_id.name }}</td>
+                <td>{{ booking.no_of_days }}</td>
+                <td>{{ booking.payment_price }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">No bookings yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock body %}
