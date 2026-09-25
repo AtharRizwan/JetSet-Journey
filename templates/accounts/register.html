@@ -1,5 +1,6 @@
 {% load static %}
 {% block body %}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,30 +9,30 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/payment.css' %}">
-    <title>Payment</title>
+    <title>Sign Up</title>
 </head>
 
 <body>
+    
 {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <strong>{{message}}</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
+{% for message in messages %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <strong>{{message}}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endfor %}
 {% endif %}
     <div class="main-container">
         <div class="container">
             <div class="heading">
-                <h1>Payment</h1>
-                <p>{{ description }}</p>
-                <p><strong>Total: Rs/- {{ total }}</strong></p>
+                <h1>Registration</h1>
             </div>
             <form class="form-grid" method="POST">
                 {% csrf_token %}
                 {{form.as_p}}
-                <button type="submit" class="form-input-submit col-span-2">Confirm Booking</button>
+                <button type="submit" class="form-input-submit col-span-2">Register</button>
                 <div class="to-login-page col-span-2">
+                    <p>Already have an account? Click here to <a href="{% url 'log_in' %}">Log In</a></p>
                 </div>
             </form>
         </div>
