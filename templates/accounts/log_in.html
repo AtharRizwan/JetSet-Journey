@@ -1,51 +1,21 @@
-{% load static %}
-{% block body %}
+{% extends "card.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
+{% block title %}Log In{% endblock %}
+{% block heading %}Log In{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'css/payment.css' %}">
-    <title>Login</title>
-</head>
-<body>
-  {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <strong>{{message}}</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+{% block card %}
+<form method="POST" action="{% url 'log_in' %}" class="flex flex-col gap-4">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <div class="form-field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" autocomplete="username" autofocus required>
     </div>
-    {% endfor %}
-{% endif %}
-    <div class="main-container">
-        <div class="container">
-            <div class="heading">
-                <h1>Login</h1>
-            </div>
-            <form class="form-grid" method="POST" action="{% url 'log_in' %}">
-                <input type="hidden" name="next" value="{{ next }}">
-              {% csrf_token %}
-                <div class="form-input-container">
-                    <label for="email" class="form-input-label">Username</label>
-                    <input type="input" id="email" name="username" class="form-input" placeholder="Enter your Username" autocomplete="off">
-                </div>
-                <div class="form-input-container">
-                    <label for="password" class="form-input-label">Password</label>
-                    <input type="password" id="password" name="password" class="form-input" placeholder="Enter your Password"
-                        minlength="6" autocomplete="off">
-                </div>
-                <button type="submit" class="form-input-submit col-span-2" value="Register">Log In</button>
-                <div class="to-signup-page col-span-2">
-                    <p>Don't have an account? Click here to <a href="{% url 'register' %}">Sign Up</a></p>
-                </div>
-            </form>
-        </div>
+    <div class="form-field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
     </div>
-</body>
-
-</html>
-
-{% endblock body %}
+    <button type="submit" class="btn-primary mt-2">Log In</button>
+    <p class="text-sm">Don't have an account? <a class="underline" href="{% url 'register' %}">Sign up</a></p>
+</form>
+{% endblock %}

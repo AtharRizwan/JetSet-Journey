@@ -1,0 +1,17 @@
+{# Booking progress list. Include with kind='hotel'|'flight'|'bus' and current=<step number>. #}
+<ol class="{% if kind == 'bus' %}bg-red-800{% else %}bg-slate-500{% endif %} rounded-lg text-white font-extrabold flex flex-row md:flex-col md:h-full overflow-x-auto">
+    {% if kind == 'hotel' %}
+        {% include "_step.html" with n=1 label="Hotel Information" %}
+        {% include "_step.html" with n=2 label="Available Hotels" %}
+        {% include "_step.html" with n=3 label="Suite Selection" %}
+    {% else %}
+        {% include "_step.html" with n=1 label="Destination Information" %}
+        {% if kind == 'flight' %}
+        {% include "_step.html" with n=2 label="Flight Information" %}
+        {% else %}
+        {% include "_step.html" with n=2 label="Bus Information" %}
+        {% endif %}
+        {% include "_step.html" with n=3 label="Seat Selection" %}
+    {% endif %}
+    {% include "_step.html" with n=4 label="Summary" %}
+</ol>

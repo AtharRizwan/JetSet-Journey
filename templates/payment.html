@@ -1,42 +1,25 @@
-{% load static %}
-{% block body %}
-<!DOCTYPE html>
-<html lang="en">
+{% extends "card.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'css/payment.css' %}">
-    <title>Payment</title>
-</head>
+{% block title %}Payment{% endblock %}
+{% block heading %}Payment{% endblock %}
 
-<body>
-{% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <strong>{{message}}</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+{% block card %}
+<div class="mb-6 p-4 rounded-md bg-slate-100">
+    <p>{{ description }}</p>
+    <p class="mt-1 font-bold text-lg">Total: <span class="font-mono text-orange-500">Rs/- {{ total }}</span></p>
+</div>
+<form method="POST" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {% csrf_token %}
+    <input type="hidden" name="token" value="{{ token }}">
+    {{ form.non_field_errors }}
+    {% include "_field.html" with field=form.card_holder wide=True %}
+    {% include "_field.html" with field=form.card_no wide=True %}
+    {% include "_field.html" with field=form.expiry %}
+    {% include "_field.html" with field=form.cvc %}
+    <p class="sm:col-span-2 text-xs text-slate-500">This is a demo: card details are checked but never stored or charged.</p>
+    <div class="sm:col-span-2 flex gap-3">
+        <a href="{{ back_url }}" class="btn-secondary flex-1">Back</a>
+        <button type="submit" class="btn-primary flex-1">Confirm Booking</button>
     </div>
-    {% endfor %}
-{% endif %}
-    <div class="main-container">
-        <div class="container">
-            <div class="heading">
-                <h1>Payment</h1>
-                <p>{{ description }}</p>
-                <p><strong>Total: Rs/- {{ total }}</strong></p>
-            </div>
-            <form class="form-grid" method="POST">
-                {% csrf_token %}
-                {{form.as_p}}
-                <button type="submit" class="form-input-submit col-span-2">Confirm Booking</button>
-                <div class="to-login-page col-span-2">
-                </div>
-            </form>
-        </div>
-    </div>
-</body>
-
-</html>
-{% endblock body %}
+</form>
+{% endblock %}

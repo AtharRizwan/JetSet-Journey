@@ -1,4 +1,6 @@
-from collections import defaultdict
+import secrets
+from datetime import datetime
+from functools import lru_cache
 from urllib.parse import urlencode
 
 from django.contrib import messages
@@ -6,23 +8,27 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
-from django.contrib.auth.models import Group
-from django.db import transaction
+from django.contrib.auth.models import Group, User
+from django.contrib.staticfiles import finders
+from django.db import IntegrityError, transaction
+from django.db.models import Count, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.text import slugify
+from django.views.decorators.http import require_POST
 
 from .forms import CustomUserChangeForm, HotelForm, PaymentForm
-from .models import Hotel, HotelServices, Suites, User_info, HotelBooking, RoomAvailability
-from .models import Flight, FlightBooking, FlightBookedSeats
-from .models import Bus, BusBooking, BusBookedSeats
+from .models import Hotel, Suites, User_info, HotelBooking, RoomAvailability
+from .models import Airline, Flight, FlightBooking, FlightBookedSeats
+from .models import Bus, BusCompany, BusBooking, BusBookedSeats
 from .services import get_weather_data
 
 
-# Seat-based trips (flights and buses) share the seat selection, summary and
-# payment logic; this table holds what differs between them.
+# Seat-based trips (flights and buses) share the search, seat selection, summary
+# and payment logic; this table holds what differs between them.
 TRIPS = {
     'flight': {
         'model': Flight,
@@ -33,6 +39,15 @@ TRIPS = {
         'seat_url': 'plane_seat_selection',
         'template': 'trips/plane_seat_selection.html',
         'search_url': 'search_flights',
+        'search_template': 'trips/search_flights.html',
+        'results_url': 'flights_informations',
+        'results_template': 'trips/flights_informations.html',
+        'results_name': 'flights',
+        'session_key': 'flight_search_params',
+        'service_param': 'airline_service',
+        'operator_model': Airline,
+        'operator_field': 'airline__airline_name',
+        'logo': 'img/{}.jpeg',
     },
     'bus': {
         'model': Bus,
@@ -43,17 +58,57 @@ TRIPS = {
         'seat_url': 'bus_seat_selection',
         'template': 'trips/bus_seat_selection.html',
         'search_url': 'search_buses',
+        'search_template': 'trips/search_buses.html',
+        'results_url': 'buses_informations',
+        'results_template': 'trips/buses_informations.html',
+        'results_name': 'buses',
+        'session_key': 'bus_search_params',
+        'service_param': 'bus_service',
+        'operator_model': BusCompany,
+        'operator_field': 'company__company_name',
+        'logo': 'img/bus-{}.jpeg',
     },
 }
+
+FALLBACK_LOGO = 'img/logo2.png'
+
+# Suite and hotel photos are picked by a keyword in the name.
+SUITE_IMAGES = {
+    'twin': 'img/hotel-room-twin-bed.jpg',
+    'platinum': 'img/hotel-room-platinum.jpg',
+    'presidential': 'img/hotel-room-presidential.jpg',
+}
+HOTEL_IMAGES = {
+    'pearl': 'img/pc-hotel.jpeg',
+    'ramada': 'img/ramada-hotel.jpg',
+    'serena': 'img/serene-hotel.jpeg',
+}
+
+
+def image_for(name, images, default):
+    lowered = name.lower()
+    return next((path for keyword, path in images.items() if keyword in lowered), default)
+
+
+@lru_cache(maxsize=None)
+def operator_logo(kind, name):
+    """Static path of the airline/bus-company logo, or the site logo if there is no matching image."""
+    path = TRIPS[kind]['logo'].format(slugify(name))
+    return path if finders.find(path) else FALLBACK_LOGO
 
 
 def trip_operator(kind, trip):
     return trip.airline.airline_name if kind == 'flight' else trip.company.company_name
 
 
+def trip_departed(trip):
+    departure = timezone.make_aware(datetime.combine(trip.departure_date, trip.departure_time))
+    return departure <= timezone.now()
+
+
 def booked_seats(kind, trip):
     config = TRIPS[kind]
-    lookup = {f"booking_id__{config['booking_field']}": trip}
+    lookup = {config['booking_field']: trip}
     return set(config['seat_model'].objects.filter(**lookup).values_list('seat_no', flat=True))
 
 
@@ -70,108 +125,92 @@ def seat_layout(seat_count, taken):
 
 
 def home(request):
-    context = {}
-    if request.user.is_authenticated:
-        context['first_name'] = request.user.first_name
-    return render(request, 'home.html', context)
+    return render(request, 'home.html')
+
+
+def trip_search(request, kind):
+    config = TRIPS[kind]
+    if request.method == 'POST':
+        request.session[config['session_key']] = {
+            'departure_city': request.POST.get('departure_city', ''),
+            'destination_city': request.POST.get('destination_city', ''),
+            'departure_date': request.POST.get('departure_date', ''),
+            config['service_param']: request.POST.get(config['service_param'], ''),
+        }
+        return redirect(config['results_url'])
+
+    operator_name = config['operator_field'].split('__')[1]
+    context = {
+        'operators': config['operator_model'].objects.order_by(operator_name)
+            .values_list(operator_name, flat=True).distinct(),
+        'selected_operator': request.GET.get('operator', ''),
+    }
+    return render(request, config['search_template'], context)
+
+
+def trip_results(request, kind):
+    config = TRIPS[kind]
+    label = 'flight' if kind == 'flight' else 'bus'
+    params = request.session.get(config['session_key'])
+    departure_date = parse_date(params.get('departure_date', '') or '') if params else None
+    if departure_date is None:
+        messages.error(request, f"Please enter your {label} search again.")
+        return redirect(config['search_url'])
+    today = timezone.localdate()
+    if departure_date < today:
+        messages.error(request, "Please choose a departure date that is today or later.")
+        return redirect(config['search_url'])
+
+    departure_city = params.get('departure_city', '').strip()
+    destination_city = params.get('destination_city', '').strip()
+    service = params.get(config['service_param'], '').strip()
+
+    trips = config['model'].objects.select_related(config['operator_field'].split('__')[0]).filter(
+        departure_city__iexact=departure_city,
+        destination_city__iexact=destination_city,
+        departure_date=departure_date,
+    ).order_by('departure_time')
+    if departure_date == today:
+        trips = trips.filter(departure_time__gt=timezone.localtime().time())
+    if service:
+        trips = trips.filter(**{f"{config['operator_field']}__iexact": service})
+
+    trips = list(trips)
+    for trip in trips:
+        trip.operator = trip_operator(kind, trip)
+        trip.logo = operator_logo(kind, trip.operator)
+
+    context = {
+        'departure_city': departure_city.title(),
+        'destination_city': destination_city.title(),
+        'departure_date': departure_date,
+        'service': service,
+        config['results_name']: trips,
+        'count': len(trips),
+    }
+    return render(request, config['results_template'], context)
 
 
 def search_flights(request):
-    if request.method == 'POST':
-        request.session['flight_search_params'] = {
-            'departure_city': request.POST.get('departure_city', ''),
-            'destination_city': request.POST.get('destination_city', ''),
-            'departure_date': request.POST.get('departure_date', ''),
-            'airline_service': request.POST.get('airline_service', ''),
-        }
-        return redirect('flights_informations')
-
-    return render(request, 'trips/search_flights.html')
+    return trip_search(request, 'flight')
 
 
 def flights_informations(request):
-    params = request.session.get('flight_search_params')
-    departure_date = parse_date(params.get('departure_date', '')) if params else None
-    if departure_date is None:
-        messages.error(request, "Please enter your flight search again.")
-        return redirect('search_flights')
-    if departure_date < timezone.localdate():
-        messages.error(request, "Please choose a departure date that is today or later.")
-        return redirect('search_flights')
-
-    departure_city = params.get('departure_city', '').strip()
-    destination_city = params.get('destination_city', '').strip()
-    airline_service = params.get('airline_service', '').strip()
-
-    flights = Flight.objects.select_related('airline').filter(
-        departure_city__iexact=departure_city,
-        destination_city__iexact=destination_city,
-        departure_date=departure_date,
-    ).order_by('departure_time')
-    if airline_service:
-        flights = flights.filter(airline__airline_name__iexact=airline_service)
-
-    context = {
-        'departure_city': departure_city.capitalize(),
-        'destination_city': destination_city.capitalize(),
-        'departure_date': departure_date,
-        'airline_service': airline_service.lower(),
-        'flights': flights,
-        'count': flights.count(),
-    }
-    return render(request, 'trips/flights_informations.html', context)
+    return trip_results(request, 'flight')
 
 
 def search_buses(request):
-    if request.method == 'POST':
-        request.session['bus_search_params'] = {
-            'departure_city': request.POST.get('departure_city', ''),
-            'destination_city': request.POST.get('destination_city', ''),
-            'departure_date': request.POST.get('departure_date', ''),
-            'bus_service': request.POST.get('bus_service', ''),
-        }
-        return redirect('buses_informations')
-
-    return render(request, 'trips/search_buses.html')
+    return trip_search(request, 'bus')
 
 
 def buses_informations(request):
-    params = request.session.get('bus_search_params')
-    departure_date = parse_date(params.get('departure_date', '')) if params else None
-    if departure_date is None:
-        messages.error(request, "Please enter your bus search again.")
-        return redirect('search_buses')
-    if departure_date < timezone.localdate():
-        messages.error(request, "Please choose a departure date that is today or later.")
-        return redirect('search_buses')
-
-    departure_city = params.get('departure_city', '').strip()
-    destination_city = params.get('destination_city', '').strip()
-    bus_service = params.get('bus_service', '').strip()
-
-    buses = Bus.objects.select_related('company').filter(
-        departure_city__iexact=departure_city,
-        destination_city__iexact=destination_city,
-        departure_date=departure_date,
-    ).order_by('departure_time')
-    if bus_service:
-        buses = buses.filter(company__company_name__iexact=bus_service)
-
-    context = {
-        'departure_city': departure_city.capitalize(),
-        'destination_city': destination_city.capitalize(),
-        'departure_date': departure_date,
-        'bus_service': bus_service.lower(),
-        'buses': buses,
-        'count': buses.count(),
-    }
-    return render(request, 'trips/buses_informations.html', context)
+    return trip_results(request, 'bus')
 
 
 def seat_selection(request, kind, id):
     config = TRIPS[kind]
     trip = get_object_or_404(config['model'], pk=id)
-    if trip.departure_date < timezone.localdate():
+    if trip_departed(trip):
         messages.error(request, "This trip has already departed.")
         return redirect(config['search_url'])
     taken = booked_seats(kind, trip)
@@ -191,14 +230,16 @@ def seat_selection(request, kind, id):
                 'type': kind,
                 'trip_id': trip.pk,
                 'seats': seats,
-                'total': trip.price * len(seats),
+                'token': secrets.token_urlsafe(16),
             }
             return redirect('trip_summary')
 
+    operator = trip_operator(kind, trip)
     context = {
         'kind': kind,
         'trip': trip,
-        'operator': trip_operator(kind, trip),
+        'operator': operator,
+        'logo': operator_logo(kind, operator),
         'seat_cells': seat_layout(config['seat_count'], taken),
     }
     return render(request, config['template'], context)
@@ -217,19 +258,30 @@ def bus_seat_selection(request, id):
 @login_required
 def trip_summary(request):
     pending = request.session.get('pending_booking')
-    if not pending or pending.get('type') not in TRIPS:
+    booking = load_pending_booking(pending)
+    if booking is None or booking['type'] == 'hotel':
         return redirect('home')
 
-    kind = pending['type']
-    trip = get_object_or_404(TRIPS[kind]['model'], pk=pending['trip_id'])
+    kind, trip = booking['type'], booking['trip']
+    config = TRIPS[kind]
+    if trip_departed(trip):
+        del request.session['pending_booking']
+        messages.error(request, "This trip has already departed.")
+        return redirect(config['search_url'])
+    if booked_seats(kind, trip) & set(booking['seats']):
+        del request.session['pending_booking']
+        messages.error(request, "Some of your seats were just booked by someone else. Please choose again.")
+        return redirect(config['seat_url'], id=trip.pk)
+
     context = {
         'kind': kind,
         'trip': trip,
-        'operator': trip_operator(kind, trip),
-        'seats': pending['seats'],
-        'seat_count': len(pending['seats']),
-        'total': pending['total'],
-        'seat_url': reverse(TRIPS[kind]['seat_url'], args=[trip.pk]),
+        'operator': booking['operator'],
+        'logo': operator_logo(kind, booking['operator']),
+        'seats': booking['seats'],
+        'seat_count': len(booking['seats']),
+        'total': booking['total'],
+        'seat_url': reverse(config['seat_url'], args=[trip.pk]),
     }
     return render(request, 'trips/trip_summary.html', context)
 
@@ -243,7 +295,7 @@ def search(request):
         }
         return redirect('searched_hotels')
 
-    return render(request, 'hotels/search.html')
+    return render(request, 'hotels/search.html', {'city': request.GET.get('city', '')})
 
 
 def get_stay_dates(request):
@@ -256,15 +308,32 @@ def get_stay_dates(request):
     return check_in, check_out
 
 
-def suite_unavailable(hotel_id, suite_id, check_in, check_out):
-    """True if the hotel is closed on any night of the stay or the suite is already booked for an overlapping stay."""
-    closed = RoomAvailability.objects.filter(
-        name__hotelid=hotel_id, date__gte=check_in, date__lt=check_out, isAvailable=False,
-    ).exists()
-    overlapping = HotelBooking.objects.filter(
-        hotel_id=hotel_id, suite_id_id=suite_id, check_in__lt=check_out, check_out__gt=check_in,
-    ).exists()
-    return closed or overlapping
+def open_for_stay(hotels, check_in, check_out):
+    """Hotels from the queryset with an open availability row for every night of the stay."""
+    nights = (check_out - check_in).days
+    open_nights = Count('roomavailability', filter=Q(
+        roomavailability__date__gte=check_in,
+        roomavailability__date__lt=check_out,
+        roomavailability__is_available=True,
+    ))
+    return hotels.annotate(open_nights=open_nights).filter(open_nights=nights)
+
+
+def booked_suite_ids(hotel_id, check_in, check_out):
+    """Suites already booked at the hotel for a stay overlapping the given dates."""
+    return set(HotelBooking.objects.filter(
+        hotel_id=hotel_id, check_in__lt=check_out, check_out__gt=check_in,
+    ).values_list('suite_id', flat=True))
+
+
+def stay_unavailable(hotel_id, suite_id, check_in, check_out):
+    """True if the hotel isn't open every night of the stay or the suite is already booked for an overlapping stay."""
+    hotel_open = open_for_stay(Hotel.objects.filter(hotelid=hotel_id), check_in, check_out).exists()
+    return not hotel_open or suite_id in booked_suite_ids(hotel_id, check_in, check_out)
+
+
+def stay_total(hotel, suite, nights):
+    return nights * (hotel.price_per_night + suite.price_per_night)
 
 
 def searched_hotels(request):
@@ -274,24 +343,21 @@ def searched_hotels(request):
         return redirect('search')
 
     city = request.session['search_params'].get('city_country', '').strip()
-    hotels = Hotel.objects.filter(
-        city__iexact=city,
-        roomavailability__date__range=stay,
-        roomavailability__isAvailable=True,
-    ).distinct()
-
-    services = defaultdict(list)
-    for hotel_service in HotelServices.objects.filter(hotel__in=hotels):
-        services[hotel_service.hotel_id].append(hotel_service.service)
+    hotels = list(
+        open_for_stay(Hotel.objects.filter(city__iexact=city), *stay)
+        .prefetch_related('hotelservices_set').order_by('name')
+    )
+    for hotel in hotels:
+        hotel.image = image_for(hotel.name, HOTEL_IMAGES, 'img/cover_bg_1.jpg')
 
     context = {
-        'city_country': city.capitalize(),
+        'city_country': city.title(),
         'check_in_date': stay[0],
         'check_out_date': stay[1],
+        'no_of_days': (stay[1] - stay[0]).days,
         'hotels': hotels,
-        'count': hotels.count(),
+        'count': len(hotels),
         'weather_data': get_weather_data(city),
-        'services': dict(services),
     }
     return render(request, 'hotels/searched_hotels.html', context)
 
@@ -311,50 +377,64 @@ def add_hotel(request):
 
 
 def hotel_details(request, id):
-    hotel = get_object_or_404(Hotel, hotelid=id)
-    context = {
-        'req_hotel': [hotel],
-    }
-    return render(request, 'hotels/hotel_details.html', context)
+    hotel = get_object_or_404(Hotel.objects.prefetch_related('hotelservices_set'), hotelid=id)
+    hotel.image = image_for(hotel.name, HOTEL_IMAGES, 'img/cover_bg_1.jpg')
+    return render(request, 'hotels/hotel_details.html', {'hotel': hotel})
 
 
 @login_required
 def booking(request, id):
     hotel = get_object_or_404(Hotel, hotelid=id)
-    request.session['hotel_booked'] = hotel.hotelid
+    stay = get_stay_dates(request)
+    if stay is None:
+        messages.error(request, "Please search for your stay dates first.")
+        return redirect('search')
+    if not open_for_stay(Hotel.objects.filter(hotelid=hotel.hotelid), *stay).exists():
+        messages.error(request, f"{hotel.name} is not open for all of those dates.")
+        return redirect('searched_hotels')
+
+    nights = (stay[1] - stay[0]).days
+    taken = booked_suite_ids(hotel.hotelid, *stay)
+    suites = list(Suites.objects.order_by('price_per_night'))
+    for suite in suites:
+        suite.image = image_for(suite.name, SUITE_IMAGES, 'img/hotel-room-deluxe.jpg')
+        suite.nightly_price = hotel.price_per_night + suite.price_per_night
+        suite.total = stay_total(hotel, suite, nights)
+        suite.unavailable = suite.suiteid in taken
 
     context = {
         'hotel': hotel,
-        'suites': Suites.objects.all(),
+        'suites': suites,
+        'check_in_date': stay[0],
+        'check_out_date': stay[1],
+        'no_of_days': nights,
     }
     return render(request, 'hotels/booking.html', context)
 
 
 @login_required
-def hotel_summary(request, id):
-    suite = get_object_or_404(Suites, suiteid=id)
-    hotel_id = request.session.get('hotel_booked')
+def hotel_summary(request, hotel_id, suite_id):
+    hotel = get_object_or_404(Hotel, hotelid=hotel_id)
+    suite = get_object_or_404(Suites, suiteid=suite_id)
     stay = get_stay_dates(request)
-    if hotel_id is None or stay is None:
+    if stay is None:
         messages.error(request, "Please search for a hotel first.")
         return redirect('search')
 
-    hotel = get_object_or_404(Hotel, hotelid=hotel_id)
-    if suite_unavailable(hotel.hotelid, suite.suiteid, *stay):
+    if stay_unavailable(hotel.hotelid, suite.suiteid, *stay):
         messages.error(request, f"The {suite.name} at {hotel.name} is not available for those dates.")
         return redirect('booking', id=hotel.hotelid)
 
     no_of_days = (stay[1] - stay[0]).days
-    total_cost = suite.price_per_night * no_of_days
     request.session['pending_booking'] = {
         'type': 'hotel',
         'hotel_id': hotel.hotelid,
         'suite_id': suite.suiteid,
         'check_in': stay[0].isoformat(),
         'check_out': stay[1].isoformat(),
-        'no_of_days': no_of_days,
-        'total': total_cost,
+        'token': secrets.token_urlsafe(16),
     }
+    suite.image = image_for(suite.name, SUITE_IMAGES, 'img/hotel-room-deluxe.jpg')
 
     context = {
         'hotel': hotel,
@@ -362,70 +442,131 @@ def hotel_summary(request, id):
         'check_in_date': stay[0],
         'check_out_date': stay[1],
         'no_of_days': no_of_days,
-        'total_cost': total_cost,
+        'nightly_price': hotel.price_per_night + suite.price_per_night,
+        'total_cost': stay_total(hotel, suite, no_of_days),
     }
     return render(request, 'hotels/hotel_summary.html', context)
 
 
-def describe_pending_booking(pending):
-    if pending['type'] == 'hotel':
-        hotel = get_object_or_404(Hotel, hotelid=pending['hotel_id'])
-        suite = get_object_or_404(Suites, suiteid=pending['suite_id'])
-        return f"{suite.name} at {hotel.name}, {pending['check_in']} to {pending['check_out']} ({pending['no_of_days']} night(s))"
+def load_pending_booking(pending):
+    """Resolve the session's pending booking against the database, with prices recalculated.
 
-    trip = get_object_or_404(TRIPS[pending['type']]['model'], pk=pending['trip_id'])
-    seats = ', '.join(str(seat) for seat in pending['seats'])
-    return f"{trip_operator(pending['type'], trip)} {trip} on {trip.departure_date}, seat(s) {seats}"
+    Returns None if it is missing, malformed, or refers to something that no longer exists.
+    """
+    if not isinstance(pending, dict) or not pending.get('token'):
+        return None
+    try:
+        if pending['type'] == 'hotel':
+            hotel = Hotel.objects.get(hotelid=pending['hotel_id'])
+            suite = Suites.objects.get(suiteid=pending['suite_id'])
+            check_in, check_out = parse_date(pending['check_in']), parse_date(pending['check_out'])
+            if check_in is None or check_out is None or check_out <= check_in:
+                return None
+            nights = (check_out - check_in).days
+            return {
+                'type': 'hotel', 'hotel': hotel, 'suite': suite,
+                'check_in': check_in, 'check_out': check_out, 'no_of_days': nights,
+                'total': stay_total(hotel, suite, nights),
+                'description': f"{suite.name} at {hotel.name}, {check_in:%d %b %Y} to {check_out:%d %b %Y} "
+                               f"({nights} night{'s' if nights != 1 else ''})",
+                'back_url': reverse('booking', args=[hotel.hotelid]),
+            }
+
+        config = TRIPS[pending['type']]
+        trip = config['model'].objects.get(pk=pending['trip_id'])
+        seats = [int(seat) for seat in pending['seats']]
+        if not seats:
+            return None
+        operator = trip_operator(pending['type'], trip)
+        return {
+            'type': pending['type'], 'trip': trip, 'seats': seats, 'operator': operator,
+            'total': trip.price * len(seats),
+            'description': f"{operator} {trip} on {trip.departure_date:%d %b %Y}, "
+                           f"seat{'s' if len(seats) != 1 else ''} {', '.join(map(str, seats))}",
+            'back_url': reverse('trip_summary'),
+        }
+    except (KeyError, TypeError, ValueError, Hotel.DoesNotExist, Suites.DoesNotExist,
+            Flight.DoesNotExist, Bus.DoesNotExist):
+        return None
+
+
+def complete_hotel_booking(request, booking):
+    """Create the hotel booking, or return a redirect if the stay can no longer be booked."""
+    hotel, suite = booking['hotel'], booking['suite']
+    if booking['check_in'] < timezone.localdate():
+        messages.error(request, "Your check-in date has passed. Please search again.")
+        return redirect('search')
+    with transaction.atomic():
+        Hotel.objects.select_for_update().get(pk=hotel.pk)
+        if stay_unavailable(hotel.hotelid, suite.suiteid, booking['check_in'], booking['check_out']):
+            messages.error(request, "Sorry, that suite was just booked for those dates. Please choose again.")
+            return redirect('booking', id=hotel.hotelid)
+        HotelBooking.objects.create(
+            user=request.user,
+            hotel=hotel,
+            suite=suite,
+            check_in=booking['check_in'],
+            check_out=booking['check_out'],
+            no_of_days=booking['no_of_days'],
+            payment_price=booking['total'],
+        )
+    return None
+
+
+def complete_trip_booking(request, booking):
+    """Create the flight/bus booking and its seats, or return a redirect if they can no longer be booked."""
+    kind, trip, seats = booking['type'], booking['trip'], booking['seats']
+    config = TRIPS[kind]
+    if trip_departed(trip):
+        messages.error(request, "This trip has already departed.")
+        return redirect(config['search_url'])
+    taken_message = "Sorry, some of your seats were just booked by someone else. Please choose again."
+    try:
+        with transaction.atomic():
+            config['model'].objects.select_for_update().get(pk=trip.pk)
+            if booked_seats(kind, trip) & set(seats):
+                messages.error(request, taken_message)
+                return redirect(config['seat_url'], id=trip.pk)
+            trip_booking = config['booking_model'].objects.create(
+                user=request.user,
+                num_seats=len(seats),
+                payment_price=booking['total'],
+                **{config['booking_field']: trip},
+            )
+            config['seat_model'].objects.bulk_create(
+                config['seat_model'](booking=trip_booking, seat_no=seat, **{config['booking_field']: trip})
+                for seat in seats
+            )
+    except IntegrityError:
+        # Another payment took one of the seats between our check and the insert.
+        messages.error(request, taken_message)
+        return redirect(config['seat_url'], id=trip.pk)
+    return None
 
 
 @login_required
 def payment(request):
     pending = request.session.get('pending_booking')
-    if not pending:
+    booking = load_pending_booking(pending)
+    if booking is None:
+        request.session.pop('pending_booking', None)
         messages.error(request, "There is nothing to pay for yet.")
         return redirect('home')
 
     if request.method == 'POST':
         form = PaymentForm(request.POST)
+        if request.POST.get('token') != pending['token']:
+            # The pending booking was replaced (e.g. in another tab) after this payment page was shown.
+            messages.error(request, "Your booking changed in another tab. Please check the details below and pay again.")
+            return redirect('payment')
         if form.is_valid():
-            if pending['type'] == 'hotel':
-                check_in, check_out = parse_date(pending['check_in']), parse_date(pending['check_out'])
-                with transaction.atomic():
-                    if suite_unavailable(pending['hotel_id'], pending['suite_id'], check_in, check_out):
-                        del request.session['pending_booking']
-                        messages.error(request, "Sorry, that suite was just booked for those dates. Please choose again.")
-                        return redirect('booking', id=pending['hotel_id'])
-
-                    HotelBooking.objects.create(
-                        user=request.user,
-                        hotel_id=pending['hotel_id'],
-                        suite_id_id=pending['suite_id'],
-                        check_in=check_in,
-                        check_out=check_out,
-                        no_of_days=pending['no_of_days'],
-                        payment_price=pending['total'],
-                    )
+            if booking['type'] == 'hotel':
+                failed = complete_hotel_booking(request, booking)
             else:
-                config = TRIPS[pending['type']]
-                trip = get_object_or_404(config['model'], pk=pending['trip_id'])
-                with transaction.atomic():
-                    if booked_seats(pending['type'], trip) & set(pending['seats']):
-                        del request.session['pending_booking']
-                        messages.error(request, "Sorry, some of your seats were just booked by someone else. Please choose again.")
-                        return redirect(config['seat_url'], id=trip.pk)
-
-                    trip_booking = config['booking_model'].objects.create(
-                        user=request.user,
-                        num_seats=len(pending['seats']),
-                        payment_price=pending['total'],
-                        **{config['booking_field']: trip},
-                    )
-                    config['seat_model'].objects.bulk_create(
-                        config['seat_model'](booking_id=trip_booking, seat_no=seat)
-                        for seat in pending['seats']
-                    )
-
+                failed = complete_trip_booking(request, booking)
             del request.session['pending_booking']
+            if failed:
+                return failed
             messages.success(request, "Payment successful! Your booking is confirmed.")
             return redirect('my_bookings')
 
@@ -435,8 +576,10 @@ def payment(request):
 
     context = {
         'form': form,
-        'description': describe_pending_booking(pending),
-        'total': pending['total'],
+        'description': booking['description'],
+        'total': booking['total'],
+        'token': pending['token'],
+        'back_url': booking['back_url'],
     }
     return render(request, 'payment.html', context)
 
@@ -445,7 +588,7 @@ def payment(request):
 def my_bookings(request):
     context = {
         'hotel_bookings': HotelBooking.objects.filter(user=request.user)
-            .select_related('hotel', 'suite_id').order_by('-id'),
+            .select_related('hotel', 'suite').order_by('-id'),
         'flight_bookings': FlightBooking.objects.filter(user=request.user)
             .select_related('flight__airline').prefetch_related('flightbookedseats_set')
             .order_by('-booking_id'),
@@ -461,10 +604,11 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            User_info.objects.create(user=user)
             group, _ = Group.objects.get_or_create(name='customers')
             group.user_set.add(user)
             login(request, user)
-            messages.success(request, "Welcome to Jet-Set Journey!")
+            messages.success(request, "Welcome to JetSet Journey!")
             return redirect('home')
     else:
         form = UserCreationForm()
@@ -478,21 +622,12 @@ def change_profile(request):
         form = CustomUserChangeForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
-            messages.success(request, "Your profile has been updated")
+            messages.success(request, "Your profile has been updated.")
+            return redirect('change_profile')
     else:
-        user_info = User_info.objects.filter(user=request.user).first()
-        form = CustomUserChangeForm(instance=request.user, initial={
-            'city': user_info.city if user_info else '',
-            'country': user_info.country if user_info else '',
-            'phone_no': (user_info.phone_no or '') if user_info else '',
-            'address': user_info.address if user_info else '',
-        })
+        form = CustomUserChangeForm(instance=request.user)
 
-    context = {
-        'form': form,
-        'username': request.user.first_name,
-    }
-    return render(request, 'accounts/change_profile.html', context)
+    return render(request, 'accounts/change_profile.html', {'form': form})
 
 
 @login_required
@@ -501,16 +636,12 @@ def change_password(request):
         form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
             user = form.save()
-            update_session_auth_hash(request, user)  # Important!
+            update_session_auth_hash(request, user)  # keep the user logged in
             messages.success(request, 'Your password was successfully updated!')
             return redirect('change_password')
-        else:
-            messages.error(request, 'Please correct the error below.')
     else:
         form = PasswordChangeForm(request.user)
-    return render(request, 'accounts/change_password.html', {
-        'form': form
-    })
+    return render(request, 'accounts/change_password.html', {'form': form})
 
 
 def log_in(request):
@@ -526,7 +657,7 @@ def log_in(request):
             login(request, user)
             return redirect(next_url or 'home')
 
-        messages.error(request, 'Invalid Username or Password.')
+        messages.error(request, 'Invalid username or password.')
         login_url = reverse('log_in')
         if next_url:
             login_url += '?' + urlencode({'next': next_url})
@@ -535,6 +666,7 @@ def log_in(request):
     return render(request, 'accounts/log_in.html', {'next': next_url})
 
 
+@require_POST
 def log_out(request):
     logout(request)
     return redirect('home')
@@ -542,17 +674,14 @@ def log_out(request):
 
 @staff_member_required(login_url='log_in')
 def all_users(request):
-    all_users_info = User_info.objects.select_related('user')
-    context = {
-        'all_users_info': all_users_info
-    }
-    return render(request, 'staff/all_users.html', context)
+    users = User.objects.select_related('profile').order_by('username')
+    return render(request, 'staff/all_users.html', {'users': users})
 
 
 @staff_member_required(login_url='log_in')
 def all_bookings(request):
     context = {
-        'hotel_bookings': HotelBooking.objects.select_related('hotel', 'user', 'suite_id').order_by('-id'),
+        'hotel_bookings': HotelBooking.objects.select_related('hotel', 'user', 'suite').order_by('-id'),
         'flight_bookings': FlightBooking.objects.select_related('user', 'flight__airline')
             .prefetch_related('flightbookedseats_set').order_by('-booking_id'),
         'bus_bookings': BusBooking.objects.select_related('user', 'bus__company')
