@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{# Shared frame for the multi-step booking pages: hero, a white card with the step list and the step's panel. #}
+{% block content %}
+<div class="flex justify-center items-center text-center h-40 md:h-56 px-4 text-white text-3xl md:text-4xl font-extrabold">
+    <h1>Travel the World with JetSet Journey</h1>
+</div>
+<div class="px-4">
+    <h2 class="text-white text-center mb-4 font-black text-2xl md:text-3xl">{% block card_heading %}Choose Your Travel Destination{% endblock %}</h2>
+    <div class="bg-white mx-auto w-full max-w-6xl px-4 py-6 md:px-10 rounded-md shadow-2xl flex flex-col md:flex-row gap-6 md:gap-10 md:min-h-96">
+        <div class="md:w-1/4 shrink-0">{% block steps %}{% endblock %}</div>
+        <div class="flex-1 min-w-0">{% block panel %}{% endblock %}</div>
+    </div>
+</div>
+{% block popular %}{% endblock %}
+{% endblock %}

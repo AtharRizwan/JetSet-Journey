@@ -1,0 +1,17 @@
+{% load static %}
+{# Grid of image tiles. Include with heading=... and tiles=[{'name', 'image', 'url'}, ...] from the view or the template tags below. #}
+<section class="mt-16 px-4">
+    <h2 class="flex justify-center mb-5">
+        <span class="text-3xl md:text-4xl text-center font-extrabold text-gray-100 bg-black/60 px-4 py-2 pb-4 shadow-2xl">{{ heading }}</span>
+    </h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto w-full max-w-6xl">
+        {% for tile in tiles %}
+        <a href="{{ tile.url }}" class="relative group block overflow-hidden bg-white hover:scale-105 transition-all duration-300 cursor-pointer">
+            <img src="{% static tile.image %}" alt="{{ tile.name }}" class="w-full h-56 object-cover">
+            <div class="absolute inset-x-0 bottom-0 flex justify-center pb-3 md:inset-0 md:items-center md:pb-0 md:opacity-0 md:group-hover:opacity-100 md:group-focus:opacity-100 transition-opacity">
+                <span class="text-white text-center text-xl bg-black/80 px-5 py-2 rounded-xl shadow-xl">{{ tile.name }}</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>

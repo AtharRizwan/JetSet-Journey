@@ -1,0 +1,79 @@
+/* Source for static/css/app.css; rebuild with the command in tailwind.config.js. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .bg-img-main { background-image: url(../img/cover_bg_1.jpg); }
+    .bg-img-bus { background-image: url(../img/bg-img-bus.jpg); }
+    .bg-img-flight { background-image: url(../img/bg-img-flight.jpg); }
+    .bg-img-hotel { background-image: url(../img/bg-img-hotel.jpg); }
+    .bg-img-about-us { background-image: url(../img/about-us-page-bg.jpeg); }
+
+    .bg-img {
+        @apply bg-cover bg-center bg-no-repeat md:bg-fixed;
+    }
+
+    /* Form fields rendered by templates/_field.html, including Django's built-in auth forms. */
+    .form-field label {
+        @apply block font-bold mb-1 text-slate-800;
+    }
+    .form-field input:not([type=checkbox]):not([type=radio]),
+    .form-field select,
+    .form-field textarea {
+        @apply w-full rounded px-2 py-1.5 bg-slate-200 shadow-md focus:outline-none focus:ring-2 focus:ring-slate-500;
+    }
+    .form-field .helptext,
+    .form-field .help {
+        @apply block text-xs text-slate-500 mt-1;
+    }
+    .form-field .help ul {
+        @apply list-disc pl-5;
+    }
+    .form-field .errorlist {
+        @apply text-sm text-red-700 mt-1;
+    }
+
+    .btn {
+        @apply inline-block text-center px-4 py-2 rounded-md font-medium transition-opacity hover:opacity-85 cursor-pointer;
+    }
+    .btn-primary { @apply btn bg-slate-600 text-white; }
+    .btn-flight { @apply btn bg-blue-700 text-white; }
+    .btn-bus { @apply btn bg-red-700 text-white; }
+    .btn-secondary { @apply btn bg-slate-200 text-slate-800; }
+
+    .panel-title {
+        @apply font-bold text-2xl font-serif mb-4;
+    }
+
+    .seat {
+        @apply flex items-center justify-center rounded-full bg-slate-300 min-h-8;
+    }
+    .seat-input {
+        @apply absolute opacity-0 w-0 h-0;
+    }
+    .seat-label {
+        @apply cursor-pointer w-full h-full hover:bg-sky-200;
+    }
+    .seat-input:checked + .seat-label {
+        @apply bg-green-600 text-white;
+    }
+    .seat-input:focus-visible + .seat-label {
+        @apply outline outline-2 outline-blue-700;
+    }
+    .seat-input:disabled + .seat-label {
+        @apply bg-slate-500 text-slate-300 cursor-not-allowed;
+    }
+}
+
+@layer components {
+    .data-table {
+        @apply w-full text-sm text-left;
+    }
+    .data-table th {
+        @apply px-3 py-2 bg-slate-100 font-bold whitespace-nowrap;
+    }
+    .data-table td {
+        @apply px-3 py-2 border-t border-gray-200;
+    }
+}

@@ -1,33 +1,51 @@
-<style>
-    .seat-input { position: absolute; opacity: 0; width: 0; height: 0; }
-    .seat-label { cursor: pointer; width: 100%; height: 100%; min-height: 2rem; }
-    .seat-input:checked + .seat-label { background-color: rgb(22, 163, 74); color: white; }
-    .seat-input:focus-visible + .seat-label { outline: 2px solid rgb(29, 78, 216); }
-    .seat-booked { background-color: rgb(100, 116, 139) !important; color: rgb(203, 213, 225); cursor: not-allowed; }
-</style>
-<form method="POST" class="w-full h-full flex flex-col">
+{% load static %}
+{# Seat picker posting name="seats"; expects seat_cells, trip, operator, logo and button_class. #}
+<form method="POST" class="w-full flex flex-col" id="seat-form">
     {% csrf_token %}
-    <div class="bg-black bg-opacity-30 w-full rounded-xl flex-1">
-        <div class="grid grid-rows-5 grid-flow-col gap-2 text-center px-3 py-3 w-full h-full">
+    <h3 class="panel-title">Seat Selection</h3>
+    <div class="flex items-center gap-3 mb-3">
+        <img src="{% static logo %}" alt="{{ operator }}" class="h-10 w-16 object-contain bg-white rounded">
+        <p class="text-sm text-slate-600">
+            <span class="font-bold">{{ operator }}</span>: {{ trip.departure_city }} to {{ trip.destination_city }},
+            {{ trip.departure_date|date:"d M Y" }} at {{ trip.departure_time|time:"H:i" }} &middot; Rs/- {{ trip.price }} per seat
+        </p>
+    </div>
+    <fieldset class="bg-black/30 rounded-xl overflow-x-auto">
+        <legend class="sr-only">Seats; already booked seats are disabled</legend>
+        <div class="grid grid-rows-5 grid-flow-col auto-cols-[minmax(2.25rem,1fr)] gap-2 text-center p-3 min-h-64">
             {% for cell in seat_cells %}
                 {% if cell is None %}
-                <div class="bg-transparent rounded-full"></div>
-                {% elif cell.booked %}
-                <div class="seat seat-booked" title="Seat {{ cell.number }} is booked">{{ cell.number }}</div>
+                <div aria-hidden="true"></div>
                 {% else %}
                 <div class="relative">
-                    <input type="checkbox" name="seats" value="{{ cell.number }}" id="seat-{{ cell.number }}" class="seat-input">
-                    <label for="seat-{{ cell.number }}" class="seat seat-label">{{ cell.number }}</label>
+                    <input type="checkbox" name="seats" value="{{ cell.number }}" id="seat-{{ cell.number }}" class="seat-input"
+                        {% if cell.booked %}disabled{% endif %}>
+                    <label for="seat-{{ cell.number }}" class="seat seat-label"
+                        {% if cell.booked %}title="Seat {{ cell.number }} is booked"{% endif %}>
+                        {{ cell.number }}{% if cell.booked %}<span class="sr-only"> (booked)</span>{% endif %}
+                    </label>
                 </div>
                 {% endif %}
             {% endfor %}
         </div>
+    </fieldset>
+    <div class="flex flex-wrap gap-x-4 gap-y-1 items-center text-xs text-slate-600 mt-2">
+        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-slate-300"></span>Free</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-green-600"></span>Selected</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-slate-500"></span>Booked</span>
+        <span class="ml-auto text-sm font-medium" id="seat-count" aria-live="polite">No seats selected</span>
     </div>
-    <div class="flex justify-between items-center text-sm text-slate-600 mt-2">
-        <span>{{ operator }}: {{ trip.departure_city }} to {{ trip.destination_city }}, {{ trip.departure_date }} at {{ trip.departure_time|time:"H:i" }}</span>
-        <span>Rs/- {{ trip.price }} per seat</span>
-    </div>
-    <button type="submit" class="py-2 bg-red-700 mt-2 rounded-lg hover:bg-red-600 text-lg font-medium text-white">
-        Next
-    </button>
+    <button type="submit" class="{{ button_class }} mt-3 text-lg">Next</button>
 </form>
+<script>
+    (function () {
+        var form = document.getElementById('seat-form');
+        var output = document.getElementById('seat-count');
+        var price = {{ trip.price }};
+        form.addEventListener('change', function () {
+            var n = form.querySelectorAll('input[name=seats]:checked').length;
+            output.textContent = n === 0 ? 'No seats selected'
+                : n + ' seat' + (n === 1 ? '' : 's') + ' selected, Rs/- ' + (n * price);
+        });
+    })();
+</script>

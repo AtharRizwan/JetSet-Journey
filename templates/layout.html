@@ -1,0 +1,94 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Travel the World{% endblock %} · JetSet Journey</title>
+    <link rel="icon" href="{% static 'img/logo2.png' %}">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="{% block body_class %}bg-img-main{% endblock %} bg-img min-h-screen">
+    <div class="bg-black/30 min-h-screen flex flex-col">
+        <header class="bg-gradient-to-b from-slate-100 via-white/90 to-transparent text-lg font-serif font-bold">
+            <nav class="mx-auto max-w-7xl px-4 lg:px-8" aria-label="Main">
+                <div class="flex items-center justify-between">
+                    <a href="{% url 'home' %}" class="py-1">
+                        <img class="h-16 w-auto md:h-20" src="{% static 'img/logo2.png' %}" alt="JetSet Journey home">
+                    </a>
+                    <button type="button" class="md:hidden p-2 rounded-md hover:bg-slate-200" aria-controls="nav-menu"
+                        aria-expanded="false" id="nav-toggle">
+                        <span class="sr-only">Open menu</span>
+                        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    <div id="nav-menu" class="hidden absolute left-0 right-0 top-16 z-20 bg-white shadow-lg px-4 pb-4
+                        md:static md:flex md:flex-1 md:items-center md:justify-between md:bg-transparent md:shadow-none md:p-0 md:ml-8">
+                        <ul class="flex flex-col md:flex-row md:flex-wrap gap-x-6 gap-y-2">
+                            <li><a href="{% url 'home' %}">Home</a></li>
+                            <li><a href="{% url 'search' %}">Hotels</a></li>
+                            <li><a href="{% url 'search_flights' %}">Flights</a></li>
+                            <li><a href="{% url 'search_buses' %}">Buses</a></li>
+                            <li><a href="{% url 'aboutus' %}">About Us</a></li>
+                            {% if user.is_staff %}
+                            <li><a href="{% url 'add_hotel' %}">Add Hotel</a></li>
+                            <li><a href="{% url 'all_users' %}">All Users</a></li>
+                            <li><a href="{% url 'all_bookings' %}">All Bookings</a></li>
+                            {% endif %}
+                        </ul>
+                        <div class="flex flex-col md:flex-row md:items-center gap-x-6 gap-y-2 mt-2 md:mt-0">
+                            {% if user.is_authenticated %}
+                            <a href="{% url 'my_bookings' %}">My Bookings</a>
+                            <a href="{% url 'change_profile' %}">Profile</a>
+                            <form method="post" action="{% url 'log_out' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="font-bold">Log Out</button>
+                            </form>
+                            {% else %}
+                            <a href="{% url 'register' %}">Register</a>
+                            <a href="{% url 'log_in' %}">Log In</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        {% include "_messages.html" %}
+
+        <main class="flex-1 pb-10">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="bg-black/70 text-slate-200 py-4 flex flex-col items-center gap-1 font-mono text-sm">
+            <a href="{% url 'home' %}">JetSet Journey</a>
+            <p>&copy; {% now "Y" %} JetSet Journey. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Mobile menu toggle.
+        (function () {
+            var toggle = document.getElementById('nav-toggle');
+            var menu = document.getElementById('nav-menu');
+            toggle.addEventListener('click', function () {
+                var open = menu.classList.toggle('hidden') === false;
+                toggle.setAttribute('aria-expanded', open);
+            });
+        })();
+
+        // A check-out/return date can't be before the check-in date picked on the same form.
+        document.querySelectorAll('input[type=date][data-after]').forEach(function (later) {
+            var earlier = document.getElementById(later.dataset.after);
+            earlier.addEventListener('change', function () {
+                if (!earlier.value) return;
+                var next = new Date(earlier.value);
+                next.setDate(next.getDate() + 1);
+                later.min = next.toISOString().slice(0, 10);
+                if (later.value && later.value < later.min) later.value = later.min;
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

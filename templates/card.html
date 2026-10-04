@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{# Centered single-card page for forms (log in, register, payment, profile, staff forms). #}
+{% block content %}
+<div class="px-4 mt-10">
+    <div class="bg-white mx-auto w-full {% block card_width %}max-w-lg{% endblock %} rounded-md shadow-2xl p-6 md:p-8">
+        <h1 class="text-3xl font-bold font-serif text-slate-800 mb-4">{% block heading %}{% endblock %}</h1>
+        {% block card %}{% endblock %}
+    </div>
+</div>
+{% endblock %}
